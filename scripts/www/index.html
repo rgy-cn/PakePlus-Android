@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="mobile-web-app-capable" content="yes">
     <title>人情往来</title>
-    <!-- 本地 xlsx 库文件（请将此文件放在同目录下） -->
+    <!-- 本地 xlsx 库，请将 xlsx.full.min.js 放在同目录下 -->
     <script src="./xlsx.full.min.js"></script>
     <style>
         :root {
@@ -18,150 +18,132 @@
             --expense-red: #FF0000;
             --text-dark: #333;
             --text-gray: #666;
-            --card-bg: rgba(255,255,255,0.85);
-            --shadow: 0 4px 12px rgba(0,0,0,0.06);
-            --shadow-hover: 0 8px 20px rgba(0,0,0,0.1);
-            --radius: 20px;
-            --radius-sm: 14px;
+            --card-bg: #fff;
+            --shadow: 0 2px 8px rgba(0,0,0,0.08);
+            --radius: 16px;
+            --radius-sm: 10px;
             --safe-bottom: env(safe-area-inset-bottom, 12px);
         }
-
         * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: linear-gradient(160deg, #fef9e7 0%, #f5f0e1 100%); height:100vh; width:100vw; overflow:hidden; position:relative; touch-action:pan-y; -webkit-overflow-scrolling:touch; }
-
-        /* 启动画面 */
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f5f5f5; height:100vh; width:100vw; overflow:hidden; position:relative; touch-action:pan-y; -webkit-overflow-scrolling:touch; }
         #splash-screen { position:fixed; top:0; left:0; width:100vw; height:100vh; background:var(--bg-cream); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; transition:opacity 0.6s ease; pointer-events:all; }
         #splash-screen.fade-out { opacity:0; pointer-events:none; }
-        #splash-screen .splash-line { font-size:2.4rem; font-weight:700; color:#5a4a2f; letter-spacing:0.15em; text-shadow:0 2px 8px rgba(0,0,0,0.08); opacity:0; transform:translateY(20px) scale(0.95); animation:splashIn 0.7s ease forwards; }
+        #splash-screen .splash-line { font-size:2rem; font-weight:700; color:#5a4a2f; letter-spacing:0.15em; opacity:0; transform:translateY(20px); animation:splashIn 0.7s ease forwards; }
         #splash-screen .splash-line:first-child { animation-delay:0.2s; }
-        #splash-screen .splash-line:last-child { animation-delay:0.7s; font-size:1.6rem; font-weight:500; color:#7a6a4f; }
-        @keyframes splashIn { to { opacity:1; transform:translateY(0) scale(1); } }
-
-        /* 主容器 */
-        #app-container { display:flex; flex-direction:column; height:100vh; width:100vw; position:relative; background:transparent; }
-
-        .top-nav { background:var(--nav-orange); color:#fff; display:flex; align-items:center; justify-content:space-between; padding:12px 16px; padding-top:max(12px, env(safe-area-inset-top, 10px)); min-height:50px; position:relative; z-index:100; flex-shrink:0; box-shadow:0 2px 10px rgba(255,140,0,0.3); }
-        .top-nav .nav-left, .top-nav .nav-right { display:flex; align-items:center; gap:12px; flex-shrink:0; }
-        .top-nav .nav-title { font-size:1.3rem; font-weight:700; text-align:center; flex:1; letter-spacing:0.05em; }
-        .top-nav .nav-btn { background:rgba(255,255,255,0.2); border:none; color:#fff; font-size:1.4rem; width:42px; height:42px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; flex-shrink:0; backdrop-filter: blur(4px); }
-        .top-nav .nav-btn:active { background:rgba(255,255,255,0.4); transform:scale(0.92); }
-
-        .bar-wrapper { background:rgba(255,255,255,0.9); padding:10px 16px; flex-shrink:0; border-bottom:1px solid rgba(0,0,0,0.05); backdrop-filter: blur(10px); }
-        .bar-container { height:26px; border-radius:13px; overflow:hidden; background:var(--income-green); position:relative; display:flex; min-width:40px; box-shadow:inset 0 1px 4px rgba(0,0,0,0.1); }
-        .bar-green { height:100%; background:linear-gradient(90deg, #00cc00, var(--income-green)); transition:width 0.4s ease; border-radius:13px 0 0 13px; flex-shrink:0; }
-        .bar-red { height:100%; background:linear-gradient(90deg, var(--expense-red), #ff4444); transition:width 0.4s ease; border-radius:0 13px 13px 0; flex-shrink:0; }
-        .bar-labels { display:flex; justify-content:space-between; font-size:0.75rem; color:#888; margin-top:6px; padding:0 4px; font-weight:500; }
+        #splash-screen .splash-line:last-child { animation-delay:0.7s; font-size:1.5rem; font-weight:500; color:#7a6a4f; }
+        @keyframes splashIn { to { opacity:1; transform:translateY(0); } }
+        #app-container { display:flex; flex-direction:column; height:100vh; width:100vw; position:relative; background:#f8f6f0; }
+        .top-nav { background:var(--nav-orange); color:#fff; display:flex; align-items:center; justify-content:space-between; padding:10px 14px; padding-top:max(10px, env(safe-area-inset-top, 10px)); min-height:50px; position:relative; z-index:100; flex-shrink:0; }
+        .top-nav .nav-left, .top-nav .nav-right { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+        .top-nav .nav-title { font-size:1.2rem; font-weight:600; text-align:center; flex:1; letter-spacing:0.05em; }
+        .top-nav .nav-btn { background:rgba(255,255,255,0.25); border:none; color:#fff; font-size:1.3rem; width:38px; height:38px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; flex-shrink:0; }
+        .top-nav .nav-btn:active { background:rgba(255,255,255,0.45); }
+        .bar-wrapper { background:#fff; padding:8px 14px; flex-shrink:0; border-bottom:1px solid #eee; }
+        .bar-container { height:22px; border-radius:11px; overflow:hidden; background:var(--income-green); position:relative; display:flex; min-width:40px; }
+        .bar-green { height:100%; background:var(--income-green); transition:width 0.4s ease; border-radius:11px 0 0 11px; flex-shrink:0; }
+        .bar-red { height:100%; background:var(--expense-red); transition:width 0.4s ease; border-radius:0 11px 11px 0; flex-shrink:0; }
+        .bar-labels { display:flex; justify-content:space-between; font-size:0.7rem; color:#888; margin-top:4px; padding:0 4px; }
         .bar-labels .lbl-income { color:#2a8a2a; }
         .bar-labels .lbl-expense { color:#c0392b; }
-
-        .folder-grid-area { flex:1; overflow-y:auto; padding:16px 12px; padding-bottom:90px; display:grid; grid-template-columns:1fr 1fr; gap:14px; align-content:start; -webkit-overflow-scrolling:touch; }
-        .folder-card { background:var(--card-bg); border-radius:var(--radius); padding:20px 12px; text-align:center; cursor:pointer; position:relative; box-shadow:var(--shadow); transition:transform 0.2s, box-shadow 0.2s; display:flex; flex-direction:column; align-items:center; gap:8px; min-height:125px; justify-content:center; backdrop-filter: blur(8px); border:1px solid rgba(255,255,255,0.5); }
-        .folder-card:active { transform:scale(0.96); box-shadow:var(--shadow-hover); }
-        .folder-card .folder-emoji { font-size:2.8rem; line-height:1; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
-        .folder-card .folder-name { font-weight:700; font-size:1rem; color:#333; }
-        .folder-card .folder-stats { font-size:0.7rem; color:#888; background:rgba(0,0,0,0.03); padding:4px 10px; border-radius:20px; }
-
-        .bottom-nav { background:var(--nav-orange); display:flex; position:fixed; bottom:0; left:0; right:0; z-index:200; padding-bottom:var(--safe-bottom); box-shadow:0 -2px 12px rgba(255,140,0,0.25); }
-        .bottom-nav .tab-btn { flex:1; text-align:center; padding:14px 0; font-size:1.1rem; font-weight:700; color:rgba(255,255,255,0.75); cursor:pointer; border:none; background:transparent; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:6px; }
-        .bottom-nav .tab-btn.active { color:#fff; background:rgba(255,255,255,0.25); border-radius:24px 24px 0 0; margin-top:-4px; padding-top:14px; transform:scale(1.02); }
-
-        .fab { position:fixed; bottom:100px; right:24px; width:58px; height:58px; border-radius:50%; background:linear-gradient(135deg, #FFA500, #FF8C00); color:#fff; font-size:2.4rem; border:none; cursor:pointer; z-index:150; box-shadow:0 6px 20px rgba(255,140,0,0.5); display:flex; align-items:center; justify-content:center; transition:transform 0.3s, box-shadow 0.3s; animation:fabPulse 2.5s infinite; }
-        .fab:active { transform:scale(0.85) rotate(90deg); box-shadow:0 2px 10px rgba(255,140,0,0.4); }
-        @keyframes fabPulse { 0%{ box-shadow:0 6px 20px rgba(255,140,0,0.5); } 50%{ box-shadow:0 6px 28px rgba(255,140,0,0.7); } 100%{ box-shadow:0 6px 20px rgba(255,140,0,0.5); } }
-
-        .popup-menu { position:fixed; background:var(--popup-bg); border-radius:var(--radius-sm); z-index:500; box-shadow:0 8px 24px rgba(0,0,0,0.18); overflow:hidden; min-width:130px; display:none; animation:menuIn 0.2s ease; }
+        .folder-grid-area { flex:1; overflow-y:auto; padding:12px 10px; padding-bottom:80px; display:grid; grid-template-columns:1fr 1fr; gap:12px; align-content:start; -webkit-overflow-scrolling:touch; }
+        .folder-card { background:#fff; border-radius:var(--radius); padding:18px 12px; text-align:center; cursor:pointer; position:relative; box-shadow:var(--shadow); transition:transform 0.15s, box-shadow 0.15s; display:flex; flex-direction:column; align-items:center; gap:6px; min-height:110px; justify-content:center; }
+        .folder-card:active { transform:scale(0.96); box-shadow:0 1px 3px rgba(0,0,0,0.1); }
+        .folder-card .folder-emoji { font-size:2.6rem; line-height:1; }
+        .folder-card .folder-name { font-weight:600; font-size:0.95rem; color:#333; letter-spacing:0.03em; }
+        .folder-card .folder-stats { font-size:0.7rem; color:#999; }
+        .bottom-nav { background:var(--nav-orange); display:flex; position:fixed; bottom:0; left:0; right:0; z-index:200; padding-bottom:var(--safe-bottom); flex-shrink:0; height:auto; }
+        .bottom-nav .tab-btn { flex:1; text-align:center; padding:12px 0; font-size:1rem; font-weight:600; color:rgba(255,255,255,0.7); cursor:pointer; border:none; background:transparent; transition:color 0.2s, background 0.2s; letter-spacing:0.04em; border-radius:0; }
+        .bottom-nav .tab-btn.active { color:#fff; background:rgba(255,255,255,0.2); border-radius:20px 20px 0 0; font-size:1.05rem; }
+        .fab { position:fixed; bottom:90px; right:20px; width:54px; height:54px; border-radius:50%; background:var(--nav-orange); color:#fff; font-size:2rem; border:none; cursor:pointer; z-index:150; box-shadow:0 4px 16px rgba(255,140,0,0.4); display:flex; align-items:center; justify-content:center; transition:transform 0.2s, box-shadow 0.2s; line-height:1; }
+        .fab:active { transform:scale(0.9); box-shadow:0 2px 8px rgba(255,140,0,0.3); }
+        .popup-menu { position:fixed; background:var(--popup-bg); border-radius:var(--radius-sm); z-index:500; box-shadow:0 4px 16px rgba(0,0,0,0.15); overflow:hidden; min-width:120px; display:none; }
         .popup-menu.show { display:block; }
-        @keyframes menuIn { from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0); } }
-        .popup-menu .menu-item { padding:14px 22px; font-size:0.95rem; cursor:pointer; color:#333; border-bottom:1px solid rgba(0,0,0,0.06); text-align:center; transition:background 0.15s; white-space:nowrap; }
+        .popup-menu .menu-item { padding:12px 20px; font-size:0.9rem; cursor:pointer; color:#333; border-bottom:1px solid rgba(0,0,0,0.08); text-align:center; transition:background 0.15s; white-space:nowrap; }
         .popup-menu .menu-item:last-child { border-bottom:none; }
-        .popup-menu .menu-item:active { background:rgba(0,0,0,0.06); }
-        .popup-menu .menu-item.danger { color:#c0392b; font-weight:700; }
-
-        .overlay { position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:400; display:none; background:rgba(0,0,0,0.2); backdrop-filter: blur(2px); }
+        .popup-menu .menu-item:active { background:rgba(0,0,0,0.08); }
+        .popup-menu .menu-item.danger { color:#c0392b; font-weight:600; }
+        .overlay { position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:400; display:none; background:rgba(0,0,0,0.25); }
         .overlay.show { display:block; }
-
-        .modal-dialog { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.9); background:var(--popup-bg); border-radius:var(--radius); z-index:600; padding:24px 20px; min-width:290px; max-width:92vw; max-height:80vh; overflow-y:auto; box-shadow:0 12px 36px rgba(0,0,0,0.2); opacity:0; transition:opacity 0.2s, transform 0.2s; }
-        .modal-dialog.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
-        .modal-dialog .modal-title { font-weight:700; font-size:1.15rem; text-align:center; margin-bottom:16px; color:#333; }
-        .modal-dialog .form-group { margin-bottom:12px; }
-        .modal-dialog .form-group label { display:block; font-size:0.8rem; color:#777; margin-bottom:4px; font-weight:600; }
-        .modal-dialog .form-group input, .modal-dialog .form-group select { width:100%; padding:12px 14px; border:2px solid #eee; border-radius:12px; font-size:0.95rem; background:#fff; outline:none; transition:border 0.2s, box-shadow 0.2s; }
-        .modal-dialog .form-group input:focus { border-color:var(--nav-orange); box-shadow:0 0 0 3px rgba(255,140,0,0.2); }
-        .modal-dialog .btn-row { display:flex; gap:12px; margin-top:20px; justify-content:center; }
-        .modal-dialog .btn { padding:12px 24px; border-radius:24px; border:none; font-size:0.95rem; font-weight:700; cursor:pointer; transition:all 0.2s; }
-        .modal-dialog .btn:active { transform:scale(0.96); }
-        .modal-dialog .btn-primary { background:linear-gradient(135deg, #FFA500, #FF8C00); color:#fff; box-shadow:0 4px 12px rgba(255,140,0,0.3); }
-        .modal-dialog .btn-cancel { background:#eee; color:#555; }
-        .modal-dialog .btn-danger { background:#e74c3c; color:#fff; box-shadow:0 4px 12px rgba(231,76,60,0.3); }
-        .emoji-picker { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:8px 0; }
-        .emoji-picker .emoji-option { font-size:1.8rem; cursor:pointer; padding:8px 10px; border-radius:12px; transition:background 0.15s, transform 0.15s; border:2px solid transparent; }
-        .emoji-picker .emoji-option:active, .emoji-picker .emoji-option.selected { background:rgba(255,140,0,0.15); border-color:var(--nav-orange); transform:scale(1.1); }
-
+        .modal-dialog { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--popup-bg); border-radius:var(--radius); z-index:600; padding:20px 18px; min-width:280px; max-width:90vw; max-height:80vh; overflow-y:auto; box-shadow:0 8px 32px rgba(0,0,0,0.2); display:none; }
+        .modal-dialog.show { display:block; }
+        .modal-dialog .modal-title { font-weight:700; font-size:1.1rem; text-align:center; margin-bottom:14px; color:#333; }
+        .modal-dialog .form-group { margin-bottom:10px; }
+        .modal-dialog .form-group label { display:block; font-size:0.8rem; color:#666; margin-bottom:3px; font-weight:500; }
+        .modal-dialog .form-group input, .modal-dialog .form-group select { width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:8px; font-size:0.9rem; background:#fff; outline:none; transition:border 0.2s; }
+        .modal-dialog .form-group input:focus { border-color:var(--nav-orange); }
+        .modal-dialog .btn-row { display:flex; gap:10px; margin-top:16px; justify-content:center; }
+        .modal-dialog .btn { padding:10px 22px; border-radius:20px; border:none; font-size:0.9rem; font-weight:600; cursor:pointer; transition:opacity 0.2s; letter-spacing:0.03em; }
+        .modal-dialog .btn:active { opacity:0.7; }
+        .modal-dialog .btn-primary { background:var(--nav-orange); color:#fff; }
+        .modal-dialog .btn-cancel { background:#ddd; color:#555; }
+        .modal-dialog .btn-danger { background:#c0392b; color:#fff; }
+        .emoji-picker { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:6px 0; }
+        .emoji-picker .emoji-option { font-size:1.6rem; cursor:pointer; padding:6px 8px; border-radius:8px; transition:background 0.15s; border:2px solid transparent; }
+        .emoji-picker .emoji-option:active, .emoji-picker .emoji-option.selected { background:rgba(255,140,0,0.2); border-color:var(--nav-orange); }
         #folder-page { position:fixed; top:0; left:0; width:100vw; height:100vh; background:#f8f6f0; z-index:300; display:none; flex-direction:column; }
         #folder-page.show { display:flex; }
-        #folder-page .folder-top-nav { background:var(--nav-orange); color:#fff; display:flex; align-items:center; padding:12px 16px; padding-top:max(12px, env(safe-area-inset-top, 10px)); gap:12px; flex-shrink:0; box-shadow:0 2px 10px rgba(255,140,0,0.3); }
-        #folder-page .folder-top-nav .back-btn { background:rgba(255,255,255,0.25); border:none; color:#fff; font-size:1.3rem; width:38px; height:38px; border-radius:50%; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
-        #folder-page .folder-top-nav .folder-title { flex:1; text-align:center; font-weight:700; font-size:1.15rem; }
-        #folder-page .search-box { margin:12px 16px; flex-shrink:0; }
-        #folder-page .search-box input { width:100%; padding:12px 16px; border:2px solid #eee; border-radius:24px; font-size:0.95rem; background:#fff; outline:none; transition:border 0.2s, box-shadow 0.2s; }
-        #folder-page .search-box input:focus { border-color:var(--nav-orange); box-shadow:0 0 0 3px rgba(255,140,0,0.15); }
-        #folder-page .entries-list { flex:1; overflow-y:auto; padding:4px 16px; padding-bottom:90px; -webkit-overflow-scrolling:touch; }
-        .entry-item { background:#fff; border-radius:var(--radius-sm); padding:16px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:flex-start; box-shadow:0 2px 8px rgba(0,0,0,0.04); cursor:pointer; transition:all 0.2s; position:relative; border-left:4px solid transparent; }
-        .entry-item:active { background:#f9f9f9; transform:scale(0.98); }
-        .entry-item.income-entry { border-left-color:var(--income-green); }
-        .entry-item.expense-entry { border-left-color:var(--expense-red); }
-        .entry-left { display:flex; flex-direction:column; align-items:flex-start; gap:4px; flex:1; min-width:0; }
-        .entry-left .entry-name { font-weight:700; font-size:1rem; color:#333; }
-        .entry-left .entry-note { font-size:0.75rem; color:#aaa; }
-        .entry-right { display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; margin-left:12px; }
-        .entry-right .entry-amount { font-weight:800; font-size:1.05rem; color:#333; }
-        .entry-right .entry-date { font-size:0.7rem; color:#bbb; }
-
-        #folder-page .add-entry-btn { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:350; background:linear-gradient(135deg, #FFA500, #FF8C00); color:#fff; border:none; padding:14px 36px; border-radius:28px; font-size:1rem; font-weight:700; cursor:pointer; box-shadow:0 6px 18px rgba(255,140,0,0.45); transition:transform 0.2s; }
+        #folder-page .folder-top-nav { background:var(--nav-orange); color:#fff; display:flex; align-items:center; padding:10px 14px; padding-top:max(10px, env(safe-area-inset-top, 10px)); gap:10px; flex-shrink:0; }
+        #folder-page .folder-top-nav .back-btn { background:rgba(255,255,255,0.25); border:none; color:#fff; font-size:1.2rem; width:36px; height:36px; border-radius:50%; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+        #folder-page .folder-top-nav .folder-title { flex:1; text-align:center; font-weight:600; font-size:1.1rem; }
+        #folder-page .search-box { margin:10px 14px; flex-shrink:0; }
+        #folder-page .search-box input { width:100%; padding:10px 14px; border:1px solid #ddd; border-radius:20px; font-size:0.9rem; background:#fff; outline:none; }
+        #folder-page .entries-list { flex:1; overflow-y:auto; padding:4px 14px; padding-bottom:80px; -webkit-overflow-scrolling:touch; }
+        #folder-page .entry-item { background:#fff; border-radius:var(--radius-sm); padding:14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:flex-start; box-shadow:0 1px 3px rgba(0,0,0,0.05); cursor:pointer; transition:background 0.15s; position:relative; }
+        #folder-page .entry-item:active { background:#f9f9f9; }
+        #folder-page .entry-left { display:flex; flex-direction:column; align-items:flex-start; gap:2px; flex:1; min-width:0; }
+        #folder-page .entry-left .entry-name { font-weight:600; font-size:0.95rem; color:#333; }
+        #folder-page .entry-left .entry-note { font-size:0.75rem; color:#999; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px; }
+        #folder-page .entry-right { display:flex; flex-direction:column; align-items:flex-end; gap:2px; flex-shrink:0; margin-left:10px; }
+        #folder-page .entry-right .entry-amount { font-weight:700; font-size:1rem; color:#333; }
+        #folder-page .entry-right .entry-date { font-size:0.7rem; color:#aaa; }
+        #folder-page .add-entry-btn { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:350; background:var(--nav-orange); color:#fff; border:none; padding:12px 30px; border-radius:24px; font-size:1rem; font-weight:600; cursor:pointer; box-shadow:0 4px 16px rgba(255,140,0,0.4); letter-spacing:0.04em; transition:transform 0.2s; }
         #folder-page .add-entry-btn:active { transform:translateX(-50%) scale(0.94); }
-        .no-entries { text-align:center; color:#ccc; padding:60px 0; font-size:0.95rem; display:flex; flex-direction:column; align-items:center; gap:10px; }
-        .no-entries::before { content:'📭'; font-size:2.5rem; opacity:0.5; }
+        .no-entries { text-align:center; color:#bbb; padding:40px 0; font-size:0.9rem; }
 
         #about-page { position:fixed; top:0; left:0; width:100vw; height:100vh; background:#f8f6f0; z-index:300; display:none; flex-direction:column; }
         #about-page.show { display:flex; }
-        #about-page .about-top-nav { background:var(--nav-orange); color:#fff; display:flex; align-items:center; padding:12px 16px; padding-top:max(12px, env(safe-area-inset-top, 10px)); gap:12px; flex-shrink:0; box-shadow:0 2px 10px rgba(255,140,0,0.3); }
-        #about-page .about-top-nav .back-btn { background:rgba(255,255,255,0.25); border:none; color:#fff; font-size:1.3rem; width:38px; height:38px; border-radius:50%; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
-        #about-page .about-top-nav .about-title { flex:1; text-align:center; font-weight:700; font-size:1.15rem; }
-        #about-page .about-content { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; padding:30px; text-align:center; font-size:1rem; color:#444; line-height:1.8; background:radial-gradient(circle at 50% 30%, rgba(255,140,0,0.08) 0%, transparent 70%); }
-        .about-icon { font-size:5.5rem; display:inline-block; animation:iconJump 3s ease-in-out infinite; margin-bottom:8px; filter:drop-shadow(0 4px 10px rgba(0,0,0,0.1)); }
-        @keyframes iconJump { 0%,100%{ transform:translateY(0) rotate(0deg) scale(1); } 20%{ transform:translateY(-12px) rotate(-3deg) scale(1.05); } 40%{ transform:translateY(0) rotate(0deg) scale(1); } 60%{ transform:translateY(-5px) rotate(3deg) scale(1.02); } 80%{ transform:translateY(0) rotate(0deg) scale(1); } }
-        #about-page .about-content .about-line { font-weight:600; }
+        #about-page .about-top-nav { background:var(--nav-orange); color:#fff; display:flex; align-items:center; padding:10px 14px; padding-top:max(10px, env(safe-area-inset-top, 10px)); gap:10px; flex-shrink:0; }
+        #about-page .about-top-nav .back-btn { background:rgba(255,255,255,0.25); border:none; color:#fff; font-size:1.2rem; width:36px; height:36px; border-radius:50%; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+        #about-page .about-top-nav .about-title { flex:1; text-align:center; font-weight:600; font-size:1.1rem; }
+        #about-page .about-content { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:20px; text-align:center; font-size:1rem; color:#444; line-height:1.8; }
+        .about-icon { font-size:5rem; display:inline-block; animation:iconWiggle 2.5s ease-in-out infinite; margin-bottom:10px; }
+        @keyframes iconWiggle {
+            0% { transform: translateY(0) rotate(0deg) scale(1); }
+            25% { transform: translateY(-5px) rotate(5deg) scale(1.05); }
+            50% { transform: translateY(0) rotate(0deg) scale(1); }
+            75% { transform: translateY(5px) rotate(-5deg) scale(1.05); }
+            100% { transform: translateY(0) rotate(0deg) scale(1); }
+        }
+        #about-page .about-content .about-line { font-weight:500; }
 
-        #entry-detail-popup { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.9); background:var(--popup-bg); border-radius:var(--radius); z-index:700; padding:22px; min-width:310px; max-width:94vw; max-height:80vh; overflow-y:auto; box-shadow:0 12px 36px rgba(0,0,0,0.2); opacity:0; transition:0.2s; }
-        #entry-detail-popup.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
-        #entry-detail-popup .detail-title { font-weight:700; text-align:center; margin-bottom:14px; font-size:1rem; color:#333; }
-        #entry-detail-popup .detail-columns { display:flex; gap:14px; }
+        #entry-detail-popup { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--popup-bg); border-radius:var(--radius); z-index:700; padding:18px; min-width:300px; max-width:92vw; max-height:78vh; overflow-y:auto; box-shadow:0 8px 32px rgba(0,0,0,0.2); display:none; }
+        #entry-detail-popup.show { display:block; }
+        #entry-detail-popup .detail-title { font-weight:700; text-align:center; margin-bottom:12px; font-size:1rem; color:#333; }
+        #entry-detail-popup .detail-columns { display:flex; gap:16px; }
         #entry-detail-popup .detail-col { flex:1; min-width:0; }
-        #entry-detail-popup .detail-col h4 { font-size:0.85rem; color:#555; margin-bottom:8px; text-align:center; border-bottom:2px solid rgba(0,0,0,0.1); padding-bottom:6px; font-weight:700; }
+        #entry-detail-popup .detail-col h4 { font-size:0.85rem; color:#555; margin-bottom:6px; text-align:center; border-bottom:1px solid rgba(0,0,0,0.1); padding-bottom:4px; }
         #entry-detail-popup .detail-col.left-col h4 { color:#2a8a2a; }
         #entry-detail-popup .detail-col.right-col h4 { color:#c0392b; }
-        #entry-detail-popup .detail-record { font-size:0.75rem; color:#555; padding:4px 0; line-height:1.6; border-bottom:1px dotted rgba(0,0,0,0.06); }
+        #entry-detail-popup .detail-record { font-size:0.75rem; color:#555; padding:3px 0; line-height:1.5; border-bottom:1px dotted rgba(0,0,0,0.06); }
         #entry-detail-popup .detail-col.left-col .detail-record { text-align:left; }
         #entry-detail-popup .detail-col.right-col .detail-record { text-align:right; }
 
-        .toast { position:fixed; bottom:140px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.82); color:#fff; padding:12px 24px; border-radius:24px; font-size:0.85rem; z-index:800; pointer-events:none; opacity:0; transition:opacity 0.3s; backdrop-filter: blur(6px); }
+        .toast { position:fixed; bottom:120px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.78); color:#fff; padding:10px 22px; border-radius:20px; font-size:0.85rem; z-index:800; pointer-events:none; opacity:0; transition:opacity 0.3s; white-space:nowrap; }
         .toast.show { opacity:1; }
-
-        @media (min-width:500px) { .folder-grid-area { grid-template-columns:repeat(3,1fr); max-width:640px; margin:0 auto; } #folder-page .entries-list { max-width:640px; margin:0 auto; } }
+        @media (min-width:500px) { .folder-grid-area { grid-template-columns:repeat(3,1fr); max-width:600px; margin:0 auto; } #folder-page .entries-list { max-width:600px; margin:0 auto; } }
     </style>
 </head>
 <body>
     <!-- 启动画面 -->
-    <div id="splash-screen">
-        <div class="splash-line">人情往来</div>
-        <div class="splash-line">有迹可寻</div>
-    </div>
+    <div id="splash-screen"><div class="splash-line">人情往来</div><div class="splash-line">有迹可寻</div></div>
     <div class="toast" id="toast"></div>
     <div class="overlay" id="global-overlay"></div>
+    <!-- 长按弹出菜单 -->
     <div class="popup-menu" id="popup-menu">
         <div class="menu-item" data-action="edit">✏️ 修改</div>
         <div class="menu-item danger" data-action="delete">🗑️ 删除</div>
     </div>
+    <!-- 主应用 -->
     <div id="app-container">
         <div class="top-nav" id="top-nav">
             <div class="nav-left"><button class="nav-btn" id="btn-backup" title="备份恢复">💾</button></div>
@@ -174,26 +156,28 @@
                 <div class="bar-red" id="bar-red" style="width:0%;"></div>
             </div>
             <div class="bar-labels">
-                <span class="lbl-income">💰 收入 <span id="lbl-income-amt">0</span>元</span>
-                <span class="lbl-expense">💸 支出 <span id="lbl-expense-amt">0</span>元</span>
+                <span class="lbl-income">收💰 <span id="lbl-income-amt">0</span>元</span>
+                <span class="lbl-expense">支💸 <span id="lbl-expense-amt">0</span>元</span>
             </div>
         </div>
         <div class="folder-grid-area" id="folder-grid"></div>
         <button class="fab" id="fab-add-folder" title="新增文件夹">+</button>
     </div>
     <div class="bottom-nav" id="bottom-nav">
-        <button class="tab-btn active" data-tab="income"><span>💰</span> 收入</button>
-        <button class="tab-btn" data-tab="expense"><span>💸</span> 支出</button>
+        <button class="tab-btn active" data-tab="income">💰 收入</button>
+        <button class="tab-btn" data-tab="expense">💸 支出</button>
     </div>
+    <!-- 文件夹详情页 -->
     <div id="folder-page">
         <div class="folder-top-nav">
             <button class="back-btn" id="folder-back-btn">←</button>
             <div class="folder-title" id="folder-detail-title">文件夹</div>
         </div>
-        <div class="search-box"><input type="text" id="folder-search-input" placeholder="🔍  按姓名搜索..."></div>
+        <div class="search-box"><input type="text" id="folder-search-input" placeholder="🔍 按姓名搜索..."></div>
         <div class="entries-list" id="entries-list"></div>
         <button class="add-entry-btn" id="btn-add-entry">✍️ 记一笔</button>
     </div>
+    <!-- 关于页面 -->
     <div id="about-page">
         <div class="about-top-nav">
             <button class="back-btn" id="about-back-btn">←</button>
@@ -206,6 +190,7 @@
             <div class="about-line">📮 邮箱：rgy-cn@qq.com</div>
         </div>
     </div>
+    <!-- 条目详情弹窗 -->
     <div id="entry-detail-popup">
         <div class="detail-title" id="detail-popup-title"></div>
         <div class="detail-columns">
@@ -213,23 +198,14 @@
             <div class="detail-col right-col" id="detail-right-col"><h4>💸 支出记录</h4><div id="detail-right-records"></div></div>
         </div>
     </div>
+    <!-- 文件选择器（支持所有文件，导入时校验后缀） -->
     <input type="file" id="import-file-input" accept="*/*" style="display:none;">
 
     <script>
     (function() {
-        // 提前设置启动画面淡出，确保即使后续出错也能关闭
-        const $splash = document.getElementById('splash-screen');
-        setTimeout(() => {
-            if ($splash) {
-                $splash.classList.add('fade-out');
-                setTimeout(() => { if ($splash) $splash.style.display = 'none'; }, 600);
-            }
-        }, 2000);
-
-        // 检查 xlsx 库是否加载，但不中断程序，仅禁用导入导出
-        let xlsxAvailable = typeof XLSX !== 'undefined';
-        if (!xlsxAvailable) {
-            console.warn('xlsx库未加载，导入导出功能不可用。请将xlsx.full.min.js放在同目录下。');
+        if (typeof XLSX === 'undefined') {
+            alert('Excel处理库未加载！\n请将 xlsx.full.min.js 放在同目录下。');
+            return;
         }
 
         const STORAGE_KEY = 'renqing_data_v2';
@@ -244,6 +220,7 @@
         const EMOJI_OPTIONS = ['💒','🏠','👶','🎂','🎓','🕯️','🎁','💝','🎉','🎊','💍','🏡','🍼','🎈','📚','💰','💵','💸','🎀','🎗️','📁','❤️','🌟','🎯'];
 
         const $ = id => document.getElementById(id);
+        const $splash = $('splash-screen');
         const $folderGrid = $('folder-grid');
         const $navTitle = $('nav-title');
         const $bottomNav = $('bottom-nav');
@@ -310,13 +287,11 @@
         function getTotalIncome() { let t=0; appData.incomeFolders.forEach(f => f.entries.forEach(e => t += parseFloat(e.amount)||0)); return t; }
         function getTotalExpense() { let t=0; appData.expenseFolders.forEach(f => f.entries.forEach(e => t += parseFloat(e.amount)||0)); return t; }
         function getFolderTotal(folder) { let t=0; folder.entries.forEach(e => t += parseFloat(e.amount)||0); return t; }
-
         function showToast(msg) {
             if (toastTimer) clearTimeout(toastTimer);
             $toast.textContent = msg; $toast.classList.add('show');
             toastTimer = setTimeout(() => { $toast.classList.remove('show'); toastTimer=null; }, 1800);
         }
-
         function showPopupMenu(x,y,target) {
             popupTarget = target; popupMenuVisible = true;
             $popupMenu.querySelector('[data-action="edit"]').textContent = target.type==='folder'?'✏️ 修改文件夹':'✏️ 修改条目';
@@ -328,11 +303,11 @@
             if (left + mw > window.innerWidth-8) left = window.innerWidth - mw - 8;
             if (top < 60) top = y + 20;
             if (top + mh > window.innerHeight-20) top = window.innerHeight - mh - 20;
-            $popupMenu.style.left = left + 'px'; $popupMenu.style.top = top + 'px';
+            $popupMenu.style.left = left + 'px';
+            $popupMenu.style.top = top + 'px';
         }
         function hidePopupMenu() { popupMenuVisible=false; popupTarget=null; $popupMenu.classList.remove('show'); $overlay.classList.remove('show'); }
         function hideEntryDetailPopup() { entryDetailVisible=false; $entryDetailPopup.classList.remove('show'); $overlay.classList.remove('show'); }
-
         function updateBarChart() {
             const totalIn = getTotalIncome(), totalEx = getTotalExpense();
             $lblIncomeAmt.textContent = totalIn.toFixed(0);
@@ -347,7 +322,6 @@
                 $barRed.style.width = redPct + '%';
             }
         }
-
         function renderFolderGrid() {
             const folders = getCurrentFolders();
             $folderGrid.innerHTML = '';
@@ -373,7 +347,6 @@
             });
             updateBarChart();
         }
-
         function openFolder(folderId) {
             const res = getFolderById(folderId); if (!res) return;
             currentFolderId = folderId; currentPage = 'folder';
@@ -387,7 +360,6 @@
             hidePopupMenu(); hideEntryDetailPopup(); renderFolderGrid(); updateBarChart();
         }
         function getCurrentFolderObj() { return currentFolderId ? getFolderById(currentFolderId) : null; }
-
         function renderEntries(searchTerm='') {
             const res = getCurrentFolderObj(); if (!res) return;
             let entries = res.folder.entries;
@@ -397,7 +369,6 @@
             entries.forEach(entry => {
                 const item = document.createElement('div'); item.className = 'entry-item'; item.setAttribute('data-entry-id', entry.id);
                 item.innerHTML = `<div class="entry-left"><span class="entry-name">${escapeHtml(entry.name)}</span><span class="entry-note">${escapeHtml(entry.note||'')}</span></div><div class="entry-right"><span class="entry-amount">${parseFloat(entry.amount).toFixed(2)}元</span><span class="entry-date">${entry.date}</span></div>`;
-                item.classList.add(res.type === 'income' ? 'income-entry' : 'expense-entry');
                 item.addEventListener('click', function(e) {
                     e.stopPropagation();
                     if (popupMenuVisible) { hidePopupMenu(); return; }
@@ -414,7 +385,6 @@
                 $entriesList.appendChild(item);
             });
         }
-
         function showEntryDetailPopup(personName) {
             entryDetailVisible = true;
             $detailPopupTitle.textContent = '👤 ' + personName + ' 的全部记录';
@@ -423,17 +393,26 @@
             appData.expenseFolders.forEach(f => f.entries.forEach(e => { if(e.name===personName) expenseRecords.push({folderName:f.name, amount:e.amount, date:e.date}); }));
             $detailLeftRecords.innerHTML = incomeRecords.length===0 ? '<div style="color:#bbb;font-size:0.7rem;text-align:center;">无记录</div>' : incomeRecords.map(r => `<div class="detail-record">📁${r.folderName} | 💰${parseFloat(r.amount).toFixed(2)}元 | 📅${r.date}</div>`).join('');
             $detailRightRecords.innerHTML = expenseRecords.length===0 ? '<div style="color:#bbb;font-size:0.7rem;text-align:center;">无记录</div>' : expenseRecords.map(r => `<div class="detail-record">📁${r.folderName} | 💸${parseFloat(r.amount).toFixed(2)}元 | 📅${r.date}</div>`).join('');
-            $entryDetailPopup.classList.add('show'); $overlay.classList.add('show');
+            $entryDetailPopup.classList.add('show');
+            $overlay.classList.add('show');
         }
-
         function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
 
+        // 全局点击处理
         document.addEventListener('click', function(e) {
-            if (popupMenuVisible && !$popupMenu.contains(e.target)) hidePopupMenu();
-            if (entryDetailVisible && !$entryDetailPopup.contains(e.target) && !e.target.closest('.entry-item')) hideEntryDetailPopup();
-            if (e.target === $overlay) { hidePopupMenu(); hideEntryDetailPopup(); }
+            if (popupMenuVisible && !$popupMenu.contains(e.target)) {
+                hidePopupMenu();
+            }
+            if (entryDetailVisible && !$entryDetailPopup.contains(e.target) && !e.target.closest('.entry-item')) {
+                hideEntryDetailPopup();
+            }
+            if (e.target === $overlay) {
+                hidePopupMenu();
+                hideEntryDetailPopup();
+            }
         });
 
+        // 手势返回（修改后：主界面不再弹出退出提示）
         let touchStartX=0, touchStartY=0, gestureHandled=false;
         document.addEventListener('touchstart', e => { if(e.touches.length===1){ touchStartX=e.touches[0].clientX; touchStartY=e.touches[0].clientY; gestureHandled=false; } }, {passive:true});
         document.addEventListener('touchend', e => {
@@ -446,28 +425,12 @@
                     gestureHandled=true;
                     if(currentPage==='folder') closeFolder();
                     else if(currentPage==='about') closeAbout();
-                    else if(currentPage==='main') showExitConfirm();
+                    // 主界面滑动不再执行任何退出操作（移除了 showExitConfirm() ）
                 }
             }
         }, {passive:true});
 
-        function showExitConfirm(){
-            const modal = document.createElement('div'); modal.className='modal-dialog show'; modal.style.zIndex='650';
-            modal.innerHTML = `<div style="text-align:center;padding:10px 0;font-size:1rem;color:#333;font-weight:600;">确定退出应用吗？</div><div class="btn-row"><button class="btn btn-cancel" id="exit-cancel">取消</button><button class="btn btn-danger" id="exit-confirm">退出</button></div>`;
-            document.body.appendChild(modal);
-            modal.querySelector('#exit-cancel').addEventListener('click', ()=>document.body.removeChild(modal));
-            modal.querySelector('#exit-confirm').addEventListener('click', ()=>{
-                document.body.removeChild(modal);
-                if (window.__TAURI__) { window.__TAURI__.invoke('close').catch(()=>{}); return; }
-                if (window.plus && window.plus.runtime) { plus.runtime.quit(); return; }
-                if (window.navigator?.app?.exitApp) { window.navigator.app.exitApp(); return; }
-                if (window.android?.finish) { window.android.finish(); return; }
-                window.close();
-                setTimeout(() => showToast('请通过系统方式关闭应用'), 300);
-            });
-            modal.addEventListener('click', function(e){ if(e.target===modal) document.body.removeChild(modal); });
-        }
-
+        // 其他功能函数（编辑、删除、表单、导入导出等）
         function handlePopupAction(action) {
             if(!popupTarget) return;
             if(action === 'edit') {
@@ -570,7 +533,6 @@
             });
         }
         function exportData() {
-            if (!xlsxAvailable) { showToast('⚠️ 缺少xlsx库，无法导出'); return; }
             const rows = [];
             appData.incomeFolders.forEach(f => f.entries.forEach(e => rows.push({ '类型': '收入', '文件夹名': f.name, '姓名': e.name, '金额': parseFloat(e.amount), '日期': e.date, '备注': e.note || '' })));
             appData.expenseFolders.forEach(f => f.entries.forEach(e => rows.push({ '类型': '支出', '文件夹名': f.name, '姓名': e.name, '金额': parseFloat(e.amount), '日期': e.date, '备注': e.note || '' })));
@@ -578,12 +540,12 @@
             const ws = XLSX.utils.json_to_sheet(rows);
             const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, '人情往来数据');
             const d = new Date();
-            const filename = `人情往来备份_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.xlsx`;
+            // 修改：文件名增加时分秒，避免重复
+            const filename = `人情往来备份_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}_${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}${String(d.getSeconds()).padStart(2,'0')}.xlsx`;
             XLSX.writeFile(wb, filename);
             showToast('✅ 数据已导出: ' + filename);
         }
         function importData(file) {
-            if (!xlsxAvailable) { showToast('⚠️ 缺少xlsx库，无法导入'); return; }
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
@@ -612,8 +574,9 @@
                     saveData(); renderFolderGrid(); updateBarChart();
                     if(currentPage==='folder') renderEntries($folderSearchInput.value);
                     showToast(`✅ 导入${imp}条，跳过${skip}条重复`);
-                } catch(err) { showToast('❌ 文件解析失败'); }
+                } catch(err) { showToast('❌ 文件解析失败，请检查是否为xlsx格式'); console.error(err); }
             };
+            reader.onerror = () => showToast('❌ 文件读取失败');
             reader.readAsArrayBuffer(file);
         }
         function triggerImport() {
@@ -631,7 +594,7 @@
             hidePopupMenu(); hideEntryDetailPopup(); renderFolderGrid(); updateBarChart();
         }
 
-        // 绑定事件
+        // 事件绑定
         document.querySelectorAll('#bottom-nav .tab-btn').forEach(b => b.addEventListener('click', function() { switchTab(this.dataset.tab); }));
         $fabAdd.addEventListener('click', addNewFolder);
         $popupMenu.querySelector('[data-action="edit"]').addEventListener('click', () => handlePopupAction('edit'));
@@ -654,28 +617,31 @@
         $importFileInput.addEventListener('change', function() {
             if(this.files && this.files[0]) {
                 const file = this.files[0];
-                if(!file.name.match(/\.(xlsx|xls)$/i)) { showToast('⚠️ 请选择 .xlsx 或 .xls 文件'); this.value=''; return; }
-                importData(file); this.value='';
+                if(!file.name.match(/\.(xlsx|xls)$/i)) {
+                    showToast('⚠️ 请选择 .xlsx 或 .xls 文件');
+                    this.value = '';
+                    return;
+                }
+                importData(file);
+                this.value = '';
             }
         });
 
         // 初始化
-        loadData();
-        renderFolderGrid();
-        updateBarChart();
-        $navTitle.textContent='收入';
+        loadData(); renderFolderGrid(); updateBarChart(); $navTitle.textContent='收入';
+        setTimeout(() => { $splash.classList.add('fade-out'); setTimeout(() => { $splash.style.display='none'; }, 600); }, 2000);
 
-        // Android 返回键
+        // Android返回键（非滑动，物理返回键处理仍保留）
         document.addEventListener('backbutton', e => {
             e.preventDefault();
             if(currentPage==='folder') closeFolder();
             else if(currentPage==='about') closeAbout();
-            else if(currentPage==='main') showExitConfirm();
+            // 主界面按返回键也不退出（移除 showExitConfirm()）
         }, false);
         window.addEventListener('popstate', e => {
             if(currentPage==='folder'){ closeFolder(); e.preventDefault(); history.pushState({page:'main'},'',''); }
             else if(currentPage==='about'){ closeAbout(); e.preventDefault(); history.pushState({page:'main'},'',''); }
-            else if(currentPage==='main'){ showExitConfirm(); e.preventDefault(); }
+            // 主界面popstate也忽略退出
         });
         if(window.history?.pushState) history.pushState({page:'main'},'','');
     })();

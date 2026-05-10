@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="mobile-web-app-capable" content="yes">
     <title>人情往来</title>
-    <!-- 本地 xlsx 库引用：请将 xlsx.full.min.js 放在同目录下 -->
+    <!-- 本地 xlsx 库，需与 index.html 同目录 -->
     <script src="./xlsx.full.min.js"></script>
     <style>
         :root {
@@ -19,791 +19,139 @@
             --text-dark: #333;
             --text-gray: #666;
             --card-bg: #fff;
-            --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow: 0 2px 8px rgba(0,0,0,0.08);
             --radius: 16px;
             --radius-sm: 10px;
             --safe-bottom: env(safe-area-inset-bottom, 12px);
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            -webkit-user-select: none;
-            user-select: none;
-            -webkit-touch-callout: none;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            background: #f5f5f5;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            position: relative;
-            touch-action: pan-y;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        #splash-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: var(--bg-cream);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 0.6s ease;
-            pointer-events: all;
-        }
-        #splash-screen.fade-out {
-            opacity: 0;
-            pointer-events: none;
-        }
-        #splash-screen .splash-line {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #5a4a2f;
-            letter-spacing: 0.15em;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: splashIn 0.7s ease forwards;
-        }
-        #splash-screen .splash-line:first-child {
-            animation-delay: 0.2s;
-        }
-        #splash-screen .splash-line:last-child {
-            animation-delay: 0.7s;
-            font-size: 1.5rem;
-            font-weight: 500;
-            color: #7a6a4f;
-        }
-        @keyframes splashIn {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        #app-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            width: 100vw;
-            position: relative;
-            background: #f8f6f0;
-        }
-
-        .top-nav {
-            background: var(--nav-orange);
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 14px;
-            padding-top: max(10px, env(safe-area-inset-top, 10px));
-            min-height: 50px;
-            position: relative;
-            z-index: 100;
-            flex-shrink: 0;
-        }
-        .top-nav .nav-left,
-        .top-nav .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-shrink: 0;
-        }
-        .top-nav .nav-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            text-align: center;
-            flex: 1;
-            letter-spacing: 0.05em;
-        }
-        .top-nav .nav-btn {
-            background: rgba(255, 255, 255, 0.25);
-            border: none;
-            color: #fff;
-            font-size: 1.3rem;
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-            flex-shrink: 0;
-        }
-        .top-nav .nav-btn:active {
-            background: rgba(255, 255, 255, 0.45);
-        }
-
-        .bar-wrapper {
-            background: #fff;
-            padding: 8px 14px;
-            flex-shrink: 0;
-            border-bottom: 1px solid #eee;
-        }
-        .bar-container {
-            height: 22px;
-            border-radius: 11px;
-            overflow: hidden;
-            background: var(--income-green);
-            position: relative;
-            display: flex;
-            min-width: 40px;
-        }
-        .bar-green {
-            height: 100%;
-            background: var(--income-green);
-            transition: width 0.4s ease;
-            border-radius: 11px 0 0 11px;
-            flex-shrink: 0;
-        }
-        .bar-red {
-            height: 100%;
-            background: var(--expense-red);
-            transition: width 0.4s ease;
-            border-radius: 0 11px 11px 0;
-            flex-shrink: 0;
-        }
-        .bar-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.7rem;
-            color: #888;
-            margin-top: 4px;
-            padding: 0 4px;
-        }
-        .bar-labels .lbl-income {
-            color: #2a8a2a;
-        }
-        .bar-labels .lbl-expense {
-            color: #c0392b;
-        }
-
-        .folder-grid-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px 10px;
-            padding-bottom: 80px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            align-content: start;
-            -webkit-overflow-scrolling: touch;
-        }
-        .folder-card {
-            background: #fff;
-            border-radius: var(--radius);
-            padding: 18px 12px;
-            text-align: center;
-            cursor: pointer;
-            position: relative;
-            box-shadow: var(--shadow);
-            transition: transform 0.15s, box-shadow 0.15s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            min-height: 110px;
-            justify-content: center;
-        }
-        .folder-card:active {
-            transform: scale(0.96);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-        .folder-card .folder-emoji {
-            font-size: 2.6rem;
-            line-height: 1;
-        }
-        .folder-card .folder-name {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: #333;
-            letter-spacing: 0.03em;
-        }
-        .folder-card .folder-stats {
-            font-size: 0.7rem;
-            color: #999;
-        }
-
-        .bottom-nav {
-            background: var(--nav-orange);
-            display: flex;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 200;
-            padding-bottom: var(--safe-bottom);
-            flex-shrink: 0;
-            height: auto;
-        }
-        .bottom-nav .tab-btn {
-            flex: 1;
-            text-align: center;
-            padding: 12px 0;
-            font-size: 1rem;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.7);
-            cursor: pointer;
-            border: none;
-            background: transparent;
-            transition: color 0.2s, background 0.2s;
-            letter-spacing: 0.04em;
-            border-radius: 0;
-        }
-        .bottom-nav .tab-btn.active {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 20px 20px 0 0;
-            font-size: 1.05rem;
-        }
-
-        .fab {
-            position: fixed;
-            bottom: 90px;
-            right: 20px;
-            width: 54px;
-            height: 54px;
-            border-radius: 50%;
-            background: var(--nav-orange);
-            color: #fff;
-            font-size: 2rem;
-            border: none;
-            cursor: pointer;
-            z-index: 150;
-            box-shadow: 0 4px 16px rgba(255, 140, 0, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s, box-shadow 0.2s;
-            line-height: 1;
-        }
-        .fab:active {
-            transform: scale(0.9);
-            box-shadow: 0 2px 8px rgba(255, 140, 0, 0.3);
-        }
-
-        .popup-menu {
-            position: fixed;
-            background: var(--popup-bg);
-            border-radius: var(--radius-sm);
-            z-index: 500;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-            overflow: hidden;
-            min-width: 120px;
-            display: none;
-        }
-        .popup-menu.show {
-            display: block;
-        }
-        .popup-menu .menu-item {
-            padding: 12px 20px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            color: #333;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-            text-align: center;
-            transition: background 0.15s;
-            white-space: nowrap;
-        }
-        .popup-menu .menu-item:last-child {
-            border-bottom: none;
-        }
-        .popup-menu .menu-item:active {
-            background: rgba(0, 0, 0, 0.08);
-        }
-        .popup-menu .menu-item.danger {
-            color: #c0392b;
-            font-weight: 600;
-        }
-
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 400;
-            display: none;
-            background: rgba(0, 0, 0, 0.25);
-        }
-        .overlay.show {
-            display: block;
-        }
-
-        .modal-dialog {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--popup-bg);
-            border-radius: var(--radius);
-            z-index: 600;
-            padding: 20px 18px;
-            min-width: 280px;
-            max-width: 90vw;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            display: none;
-        }
-        .modal-dialog.show {
-            display: block;
-        }
-        .modal-dialog .modal-title {
-            font-weight: 700;
-            font-size: 1.1rem;
-            text-align: center;
-            margin-bottom: 14px;
-            color: #333;
-        }
-        .modal-dialog .form-group {
-            margin-bottom: 10px;
-        }
-        .modal-dialog .form-group label {
-            display: block;
-            font-size: 0.8rem;
-            color: #666;
-            margin-bottom: 3px;
-            font-weight: 500;
-        }
-        .modal-dialog .form-group input,
-        .modal-dialog .form-group select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            background: #fff;
-            outline: none;
-            transition: border 0.2s;
-        }
-        .modal-dialog .form-group input:focus {
-            border-color: var(--nav-orange);
-        }
-        .modal-dialog .btn-row {
-            display: flex;
-            gap: 10px;
-            margin-top: 16px;
-            justify-content: center;
-        }
-        .modal-dialog .btn {
-            padding: 10px 22px;
-            border-radius: 20px;
-            border: none;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s;
-            letter-spacing: 0.03em;
-        }
-        .modal-dialog .btn:active {
-            opacity: 0.7;
-        }
-        .modal-dialog .btn-primary {
-            background: var(--nav-orange);
-            color: #fff;
-        }
-        .modal-dialog .btn-cancel {
-            background: #ddd;
-            color: #555;
-        }
-        .modal-dialog .btn-danger {
-            background: #c0392b;
-            color: #fff;
-        }
-
-        .emoji-picker {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
-            margin: 6px 0;
-        }
-        .emoji-picker .emoji-option {
-            font-size: 1.6rem;
-            cursor: pointer;
-            padding: 6px 8px;
-            border-radius: 8px;
-            transition: background 0.15s;
-            border: 2px solid transparent;
-        }
-        .emoji-picker .emoji-option:active,
-        .emoji-picker .emoji-option.selected {
-            background: rgba(255, 140, 0, 0.2);
-            border-color: var(--nav-orange);
-        }
-
-        #folder-page {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: #f8f6f0;
-            z-index: 300;
-            display: none;
-            flex-direction: column;
-        }
-        #folder-page.show {
-            display: flex;
-        }
-        #folder-page .folder-top-nav {
-            background: var(--nav-orange);
-            color: #fff;
-            display: flex;
-            align-items: center;
-            padding: 10px 14px;
-            padding-top: max(10px, env(safe-area-inset-top, 10px));
-            gap: 10px;
-            flex-shrink: 0;
-        }
-        #folder-page .folder-top-nav .back-btn {
-            background: rgba(255, 255, 255, 0.25);
-            border: none;
-            color: #fff;
-            font-size: 1.2rem;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            cursor: pointer;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #folder-page .folder-top-nav .folder-title {
-            flex: 1;
-            text-align: center;
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-        #folder-page .search-box {
-            margin: 10px 14px;
-            flex-shrink: 0;
-        }
-        #folder-page .search-box input {
-            width: 100%;
-            padding: 10px 14px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            background: #fff;
-            outline: none;
-        }
-        #folder-page .entries-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 4px 14px;
-            padding-bottom: 80px;
-            -webkit-overflow-scrolling: touch;
-        }
-        #folder-page .entry-item {
-            background: #fff;
-            border-radius: var(--radius-sm);
-            padding: 14px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            cursor: pointer;
-            transition: background 0.15s;
-            position: relative;
-        }
-        #folder-page .entry-item:active {
-            background: #f9f9f9;
-        }
-        #folder-page .entry-left {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 2px;
-            flex: 1;
-            min-width: 0;
-        }
-        #folder-page .entry-left .entry-name {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: #333;
-        }
-        #folder-page .entry-left .entry-note {
-            font-size: 0.75rem;
-            color: #999;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 140px;
-        }
-        #folder-page .entry-right {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 2px;
-            flex-shrink: 0;
-            margin-left: 10px;
-        }
-        #folder-page .entry-right .entry-amount {
-            font-weight: 700;
-            font-size: 1rem;
-            color: #333;
-        }
-        #folder-page .entry-right .entry-date {
-            font-size: 0.7rem;
-            color: #aaa;
-        }
-        #folder-page .add-entry-btn {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 350;
-            background: var(--nav-orange);
-            color: #fff;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 24px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 4px 16px rgba(255, 140, 0, 0.4);
-            letter-spacing: 0.04em;
-            transition: transform 0.2s;
-        }
-        #folder-page .add-entry-btn:active {
-            transform: translateX(-50%) scale(0.94);
-        }
-        .no-entries {
-            text-align: center;
-            color: #bbb;
-            padding: 40px 0;
-            font-size: 0.9rem;
-        }
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f5f5f5; height:100vh; width:100vw; overflow:hidden; position:relative; touch-action:pan-y; -webkit-overflow-scrolling:touch; }
+        #splash-screen { position:fixed; top:0; left:0; width:100vw; height:100vh; background:var(--bg-cream); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; transition:opacity 0.6s ease; pointer-events:all; }
+        #splash-screen.fade-out { opacity:0; pointer-events:none; }
+        #splash-screen .splash-line { font-size:2rem; font-weight:700; color:#5a4a2f; letter-spacing:0.15em; opacity:0; transform:translateY(20px); animation:splashIn 0.7s ease forwards; }
+        #splash-screen .splash-line:first-child { animation-delay:0.2s; }
+        #splash-screen .splash-line:last-child { animation-delay:0.7s; font-size:1.5rem; font-weight:500; color:#7a6a4f; }
+        @keyframes splashIn { to { opacity:1; transform:translateY(0); } }
+        #app-container { display:flex; flex-direction:column; height:100vh; width:100vw; position:relative; background:#f8f6f0; }
+        .top-nav { background:var(--nav-orange); color:#fff; display:flex; align-items:center; justify-content:space-between; padding:10px 14px; padding-top:max(10px, env(safe-area-inset-top, 10px)); min-height:50px; position:relative; z-index:100; flex-shrink:0; }
+        .top-nav .nav-left, .top-nav .nav-right { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+        .top-nav .nav-title { font-size:1.2rem; font-weight:600; text-align:center; flex:1; letter-spacing:0.05em; }
+        .top-nav .nav-btn { background:rgba(255,255,255,0.25); border:none; color:#fff; font-size:1.3rem; width:38px; height:38px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; flex-shrink:0; }
+        .top-nav .nav-btn:active { background:rgba(255,255,255,0.45); }
+        .bar-wrapper { background:#fff; padding:8px 14px; flex-shrink:0; border-bottom:1px solid #eee; }
+        .bar-container { height:22px; border-radius:11px; overflow:hidden; background:var(--income-green); position:relative; display:flex; min-width:40px; }
+        .bar-green { height:100%; background:var(--income-green); transition:width 0.4s ease; border-radius:11px 0 0 11px; flex-shrink:0; }
+        .bar-red { height:100%; background:var(--expense-red); transition:width 0.4s ease; border-radius:0 11px 11px 0; flex-shrink:0; }
+        .bar-labels { display:flex; justify-content:space-between; font-size:0.7rem; color:#888; margin-top:4px; padding:0 4px; }
+        .bar-labels .lbl-income { color:#2a8a2a; }
+        .bar-labels .lbl-expense { color:#c0392b; }
+        .folder-grid-area { flex:1; overflow-y:auto; padding:12px 10px; padding-bottom:80px; display:grid; grid-template-columns:1fr 1fr; gap:12px; align-content:start; -webkit-overflow-scrolling:touch; }
+        .folder-card { background:#fff; border-radius:var(--radius); padding:18px 12px; text-align:center; cursor:pointer; position:relative; box-shadow:var(--shadow); transition:transform 0.15s, box-shadow 0.15s; display:flex; flex-direction:column; align-items:center; gap:6px; min-height:110px; justify-content:center; }
+        .folder-card:active { transform:scale(0.96); box-shadow:0 1px 3px rgba(0,0,0,0.1); }
+        .folder-card .folder-emoji { font-size:2.6rem; line-height:1; }
+        .folder-card .folder-name { font-weight:600; font-size:0.95rem; color:#333; letter-spacing:0.03em; }
+        .folder-card .folder-stats { font-size:0.7rem; color:#999; }
+        .bottom-nav { background:var(--nav-orange); display:flex; position:fixed; bottom:0; left:0; right:0; z-index:200; padding-bottom:var(--safe-bottom); flex-shrink:0; height:auto; }
+        .bottom-nav .tab-btn { flex:1; text-align:center; padding:12px 0; font-size:1rem; font-weight:600; color:rgba(255,255,255,0.7); cursor:pointer; border:none; background:transparent; transition:color 0.2s, background 0.2s; letter-spacing:0.04em; border-radius:0; }
+        .bottom-nav .tab-btn.active { color:#fff; background:rgba(255,255,255,0.2); border-radius:20px 20px 0 0; font-size:1.05rem; }
+        .fab { position:fixed; bottom:90px; right:20px; width:54px; height:54px; border-radius:50%; background:var(--nav-orange); color:#fff; font-size:2rem; border:none; cursor:pointer; z-index:150; box-shadow:0 4px 16px rgba(255,140,0,0.4); display:flex; align-items:center; justify-content:center; transition:transform 0.2s, box-shadow 0.2s; line-height:1; }
+        .fab:active { transform:scale(0.9); box-shadow:0 2px 8px rgba(255,140,0,0.3); }
+        .popup-menu { position:fixed; background:var(--popup-bg); border-radius:var(--radius-sm); z-index:500; box-shadow:0 4px 16px rgba(0,0,0,0.15); overflow:hidden; min-width:120px; display:none; }
+        .popup-menu.show { display:block; }
+        .popup-menu .menu-item { padding:12px 20px; font-size:0.9rem; cursor:pointer; color:#333; border-bottom:1px solid rgba(0,0,0,0.08); text-align:center; transition:background 0.15s; white-space:nowrap; }
+        .popup-menu .menu-item:last-child { border-bottom:none; }
+        .popup-menu .menu-item:active { background:rgba(0,0,0,0.08); }
+        .popup-menu .menu-item.danger { color:#c0392b; font-weight:600; }
+        .overlay { position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:400; display:none; background:rgba(0,0,0,0.25); }
+        .overlay.show { display:block; }
+        .modal-dialog { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--popup-bg); border-radius:var(--radius); z-index:600; padding:20px 18px; min-width:280px; max-width:90vw; max-height:80vh; overflow-y:auto; box-shadow:0 8px 32px rgba(0,0,0,0.2); display:none; }
+        .modal-dialog.show { display:block; }
+        .modal-dialog .modal-title { font-weight:700; font-size:1.1rem; text-align:center; margin-bottom:14px; color:#333; }
+        .modal-dialog .form-group { margin-bottom:10px; }
+        .modal-dialog .form-group label { display:block; font-size:0.8rem; color:#666; margin-bottom:3px; font-weight:500; }
+        .modal-dialog .form-group input, .modal-dialog .form-group select { width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:8px; font-size:0.9rem; background:#fff; outline:none; transition:border 0.2s; }
+        .modal-dialog .form-group input:focus { border-color:var(--nav-orange); }
+        .modal-dialog .btn-row { display:flex; gap:10px; margin-top:16px; justify-content:center; }
+        .modal-dialog .btn { padding:10px 22px; border-radius:20px; border:none; font-size:0.9rem; font-weight:600; cursor:pointer; transition:opacity 0.2s; letter-spacing:0.03em; }
+        .modal-dialog .btn:active { opacity:0.7; }
+        .modal-dialog .btn-primary { background:var(--nav-orange); color:#fff; }
+        .modal-dialog .btn-cancel { background:#ddd; color:#555; }
+        .modal-dialog .btn-danger { background:#c0392b; color:#fff; }
+        .emoji-picker { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:6px 0; }
+        .emoji-picker .emoji-option { font-size:1.6rem; cursor:pointer; padding:6px 8px; border-radius:8px; transition:background 0.15s; border:2px solid transparent; }
+        .emoji-picker .emoji-option:active, .emoji-picker .emoji-option.selected { background:rgba(255,140,0,0.2); border-color:var(--nav-orange); }
+        #folder-page { position:fixed; top:0; left:0; width:100vw; height:100vh; background:#f8f6f0; z-index:300; display:none; flex-direction:column; }
+        #folder-page.show { display:flex; }
+        #folder-page .folder-top-nav { background:var(--nav-orange); color:#fff; display:flex; align-items:center; padding:10px 14px; padding-top:max(10px, env(safe-area-inset-top, 10px)); gap:10px; flex-shrink:0; }
+        #folder-page .folder-top-nav .back-btn { background:rgba(255,255,255,0.25); border:none; color:#fff; font-size:1.2rem; width:36px; height:36px; border-radius:50%; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+        #folder-page .folder-top-nav .folder-title { flex:1; text-align:center; font-weight:600; font-size:1.1rem; }
+        #folder-page .search-box { margin:10px 14px; flex-shrink:0; }
+        #folder-page .search-box input { width:100%; padding:10px 14px; border:1px solid #ddd; border-radius:20px; font-size:0.9rem; background:#fff; outline:none; }
+        #folder-page .entries-list { flex:1; overflow-y:auto; padding:4px 14px; padding-bottom:80px; -webkit-overflow-scrolling:touch; }
+        #folder-page .entry-item { background:#fff; border-radius:var(--radius-sm); padding:14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:flex-start; box-shadow:0 1px 3px rgba(0,0,0,0.05); cursor:pointer; transition:background 0.15s; position:relative; }
+        #folder-page .entry-item:active { background:#f9f9f9; }
+        #folder-page .entry-left { display:flex; flex-direction:column; align-items:flex-start; gap:2px; flex:1; min-width:0; }
+        #folder-page .entry-left .entry-name { font-weight:600; font-size:0.95rem; color:#333; }
+        #folder-page .entry-left .entry-note { font-size:0.75rem; color:#999; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px; }
+        #folder-page .entry-right { display:flex; flex-direction:column; align-items:flex-end; gap:2px; flex-shrink:0; margin-left:10px; }
+        #folder-page .entry-right .entry-amount { font-weight:700; font-size:1rem; color:#333; }
+        #folder-page .entry-right .entry-date { font-size:0.7rem; color:#aaa; }
+        #folder-page .add-entry-btn { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:350; background:var(--nav-orange); color:#fff; border:none; padding:12px 30px; border-radius:24px; font-size:1rem; font-weight:600; cursor:pointer; box-shadow:0 4px 16px rgba(255,140,0,0.4); letter-spacing:0.04em; transition:transform 0.2s; }
+        #folder-page .add-entry-btn:active { transform:translateX(-50%) scale(0.94); }
+        .no-entries { text-align:center; color:#bbb; padding:40px 0; font-size:0.9rem; }
 
         /* 关于页面美化 */
-        #about-page {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: #f8f6f0;
-            z-index: 300;
-            display: none;
-            flex-direction: column;
-        }
-        #about-page.show {
-            display: flex;
-        }
-        #about-page .about-top-nav {
-            background: var(--nav-orange);
-            color: #fff;
-            display: flex;
-            align-items: center;
-            padding: 10px 14px;
-            padding-top: max(10px, env(safe-area-inset-top, 10px));
-            gap: 10px;
-            flex-shrink: 0;
-        }
-        #about-page .about-top-nav .back-btn {
-            background: rgba(255, 255, 255, 0.25);
-            border: none;
-            color: #fff;
-            font-size: 1.2rem;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            cursor: pointer;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #about-page .about-top-nav .about-title {
-            flex: 1;
-            text-align: center;
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-        #about-page .about-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 18px;
-            padding: 20px;
-            text-align: center;
-            font-size: 1rem;
-            color: #444;
-            line-height: 1.8;
-        }
-        .about-icon {
-            font-size: 5rem;
-            display: inline-block;
-            animation: iconWiggle 2.5s ease-in-out infinite;
-            margin-bottom: 10px;
-        }
+        #about-page { position:fixed; top:0; left:0; width:100vw; height:100vh; background:#f8f6f0; z-index:300; display:none; flex-direction:column; }
+        #about-page.show { display:flex; }
+        #about-page .about-top-nav { background:var(--nav-orange); color:#fff; display:flex; align-items:center; padding:10px 14px; padding-top:max(10px, env(safe-area-inset-top, 10px)); gap:10px; flex-shrink:0; }
+        #about-page .about-top-nav .back-btn { background:rgba(255,255,255,0.25); border:none; color:#fff; font-size:1.2rem; width:36px; height:36px; border-radius:50%; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+        #about-page .about-top-nav .about-title { flex:1; text-align:center; font-weight:600; font-size:1.1rem; }
+        #about-page .about-content { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:20px; text-align:center; font-size:1rem; color:#444; line-height:1.8; }
+        .about-icon { font-size:5rem; display:inline-block; animation:iconWiggle 2.5s ease-in-out infinite; margin-bottom:10px; }
         @keyframes iconWiggle {
-            0% {
-                transform: translateY(0) rotate(0deg) scale(1);
-            }
-            25% {
-                transform: translateY(-5px) rotate(5deg) scale(1.05);
-            }
-            50% {
-                transform: translateY(0) rotate(0deg) scale(1);
-            }
-            75% {
-                transform: translateY(5px) rotate(-5deg) scale(1.05);
-            }
-            100% {
-                transform: translateY(0) rotate(0deg) scale(1);
-            }
+            0% { transform: translateY(0) rotate(0deg) scale(1); }
+            25% { transform: translateY(-5px) rotate(5deg) scale(1.05); }
+            50% { transform: translateY(0) rotate(0deg) scale(1); }
+            75% { transform: translateY(5px) rotate(-5deg) scale(1.05); }
+            100% { transform: translateY(0) rotate(0deg) scale(1); }
         }
-        #about-page .about-content .about-line {
-            font-weight: 500;
-        }
+        #about-page .about-content .about-line { font-weight:500; }
 
-        #entry-detail-popup {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--popup-bg);
-            border-radius: var(--radius);
-            z-index: 700;
-            padding: 18px;
-            min-width: 300px;
-            max-width: 92vw;
-            max-height: 78vh;
-            overflow-y: auto;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            display: none;
-        }
-        #entry-detail-popup.show {
-            display: block;
-        }
-        #entry-detail-popup .detail-title {
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 12px;
-            font-size: 1rem;
-            color: #333;
-        }
-        #entry-detail-popup .detail-columns {
-            display: flex;
-            gap: 16px;
-        }
-        #entry-detail-popup .detail-col {
-            flex: 1;
-            min-width: 0;
-        }
-        #entry-detail-popup .detail-col h4 {
-            font-size: 0.85rem;
-            color: #555;
-            margin-bottom: 6px;
-            text-align: center;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            padding-bottom: 4px;
-        }
-        #entry-detail-popup .detail-col.left-col h4 {
-            color: #2a8a2a;
-        }
-        #entry-detail-popup .detail-col.right-col h4 {
-            color: #c0392b;
-        }
-        #entry-detail-popup .detail-record {
-            font-size: 0.75rem;
-            color: #555;
-            padding: 3px 0;
-            line-height: 1.5;
-            border-bottom: 1px dotted rgba(0, 0, 0, 0.06);
-        }
-        #entry-detail-popup .detail-col.left-col .detail-record {
-            text-align: left;
-        }
-        #entry-detail-popup .detail-col.right-col .detail-record {
-            text-align: right;
-        }
+        /* 条目详情弹窗（左右分栏） */
+        #entry-detail-popup { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--popup-bg); border-radius:var(--radius); z-index:700; padding:18px; min-width:300px; max-width:92vw; max-height:78vh; overflow-y:auto; box-shadow:0 8px 32px rgba(0,0,0,0.2); display:none; }
+        #entry-detail-popup.show { display:block; }
+        #entry-detail-popup .detail-title { font-weight:700; text-align:center; margin-bottom:12px; font-size:1rem; color:#333; }
+        #entry-detail-popup .detail-columns { display:flex; gap:16px; }
+        #entry-detail-popup .detail-col { flex:1; min-width:0; }
+        #entry-detail-popup .detail-col h4 { font-size:0.85rem; color:#555; margin-bottom:6px; text-align:center; border-bottom:1px solid rgba(0,0,0,0.1); padding-bottom:4px; }
+        #entry-detail-popup .detail-col.left-col h4 { color:#2a8a2a; }
+        #entry-detail-popup .detail-col.right-col h4 { color:#c0392b; }
+        #entry-detail-popup .detail-record { font-size:0.75rem; color:#555; padding:3px 0; line-height:1.5; border-bottom:1px dotted rgba(0,0,0,0.06); }
+        #entry-detail-popup .detail-col.left-col .detail-record { text-align:left; }
+        #entry-detail-popup .detail-col.right-col .detail-record { text-align:right; }
 
-        .toast {
-            position: fixed;
-            bottom: 120px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.78);
-            color: #fff;
-            padding: 10px 22px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            z-index: 800;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s;
-            white-space: nowrap;
-        }
-        .toast.show {
-            opacity: 1;
-        }
-
-        @media (min-width: 500px) {
-            .folder-grid-area {
-                grid-template-columns: repeat(3, 1fr);
-                max-width: 600px;
-                margin: 0 auto;
-            }
-            #folder-page .entries-list {
-                max-width: 600px;
-                margin: 0 auto;
-            }
-        }
+        .toast { position:fixed; bottom:120px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.78); color:#fff; padding:10px 22px; border-radius:20px; font-size:0.85rem; z-index:800; pointer-events:none; opacity:0; transition:opacity 0.3s; white-space:nowrap; }
+        .toast.show { opacity:1; }
+        @media (min-width:500px) { .folder-grid-area { grid-template-columns:repeat(3,1fr); max-width:600px; margin:0 auto; } #folder-page .entries-list { max-width:600px; margin:0 auto; } }
     </style>
 </head>
 <body>
-
-    <!-- ==================== 启动画面 ==================== -->
-    <div id="splash-screen">
-        <div class="splash-line">人情往来</div>
-        <div class="splash-line">有迹可寻</div>
-    </div>
-
-    <!-- ==================== Toast ==================== -->
+    <!-- 启动画面 -->
+    <div id="splash-screen"><div class="splash-line">人情往来</div><div class="splash-line">有迹可寻</div></div>
     <div class="toast" id="toast"></div>
-
-    <!-- ==================== 全局遮罩 ==================== -->
     <div class="overlay" id="global-overlay"></div>
-
-    <!-- ==================== 长按弹出菜单 ==================== -->
+    <!-- 长按弹出菜单 -->
     <div class="popup-menu" id="popup-menu">
         <div class="menu-item" data-action="edit">✏️ 修改</div>
         <div class="menu-item danger" data-action="delete">🗑️ 删除</div>
     </div>
-
-    <!-- ==================== 主应用容器 ==================== -->
+    <!-- 主应用 -->
     <div id="app-container">
-        <!-- 顶部导航栏 -->
         <div class="top-nav" id="top-nav">
-            <div class="nav-left">
-                <button class="nav-btn" id="btn-backup" title="备份恢复">💾</button>
-            </div>
+            <div class="nav-left"><button class="nav-btn" id="btn-backup" title="备份恢复">💾</button></div>
             <div class="nav-title" id="nav-title">收入</div>
-            <div class="nav-right">
-                <button class="nav-btn" id="btn-about" title="关于">ℹ️</button>
-            </div>
+            <div class="nav-right"><button class="nav-btn" id="btn-about" title="关于">ℹ️</button></div>
         </div>
-
-        <!-- 柱状数据条 -->
         <div class="bar-wrapper">
             <div class="bar-container" id="bar-container">
                 <div class="bar-green" id="bar-green" style="width:100%;"></div>
@@ -814,34 +162,24 @@
                 <span class="lbl-expense">支💸 <span id="lbl-expense-amt">0</span>元</span>
             </div>
         </div>
-
-        <!-- 文件夹网格 -->
         <div class="folder-grid-area" id="folder-grid"></div>
-
-        <!-- 悬浮新增按钮 -->
         <button class="fab" id="fab-add-folder" title="新增文件夹">+</button>
     </div>
-
-    <!-- ==================== 底部导航栏 ==================== -->
     <div class="bottom-nav" id="bottom-nav">
         <button class="tab-btn active" data-tab="income">💰 收入</button>
         <button class="tab-btn" data-tab="expense">💸 支出</button>
     </div>
-
-    <!-- ==================== 文件夹详情页 ==================== -->
+    <!-- 文件夹详情页 -->
     <div id="folder-page">
         <div class="folder-top-nav">
             <button class="back-btn" id="folder-back-btn">←</button>
             <div class="folder-title" id="folder-detail-title">文件夹</div>
         </div>
-        <div class="search-box">
-            <input type="text" id="folder-search-input" placeholder="🔍 按姓名搜索...">
-        </div>
+        <div class="search-box"><input type="text" id="folder-search-input" placeholder="🔍 按姓名搜索..."></div>
         <div class="entries-list" id="entries-list"></div>
         <button class="add-entry-btn" id="btn-add-entry">✍️ 记一笔</button>
     </div>
-
-    <!-- ==================== 关于页面（已美化） ==================== -->
+    <!-- 关于页面 -->
     <div id="about-page">
         <div class="about-top-nav">
             <button class="back-btn" id="about-back-btn">←</button>
@@ -854,646 +192,484 @@
             <div class="about-line">📮 邮箱：rgy-cn@qq.com</div>
         </div>
     </div>
-
-    <!-- ==================== 条目详情弹窗 ==================== -->
+    <!-- 条目详情弹窗 -->
     <div id="entry-detail-popup">
         <div class="detail-title" id="detail-popup-title"></div>
         <div class="detail-columns">
-            <div class="detail-col left-col" id="detail-left-col">
-                <h4>💰 收入记录</h4>
-                <div id="detail-left-records"></div>
-            </div>
-            <div class="detail-col right-col" id="detail-right-col">
-                <h4>💸 支出记录</h4>
-                <div id="detail-right-records"></div>
-            </div>
+            <div class="detail-col left-col" id="detail-left-col"><h4>💰 收入记录</h4><div id="detail-left-records"></div></div>
+            <div class="detail-col right-col" id="detail-right-col"><h4>💸 支出记录</h4><div id="detail-right-records"></div></div>
         </div>
     </div>
-
-    <!-- ==================== 隐藏的文件输入 ==================== -->
-    <input type="file" id="import-file-input" accept=".xlsx,.xls" style="display:none;">
+    <!-- 隐藏的文件选择器（接受所有文件，便于看到xlsx） -->
+    <input type="file" id="import-file-input" accept="*/*" style="display:none;">
 
     <script>
-        (function() {
-            // 检查 xlsx 库是否加载成功
-            if (typeof XLSX === 'undefined') {
-                alert('Excel 处理库未加载！\n请确保同目录下有 xlsx.full.min.js 文件。\n可从 https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js 下载。');
-                return;
-            }
+    (function() {
+        if (typeof XLSX === 'undefined') {
+            alert('Excel处理库未加载！\n请将 xlsx.full.min.js 放在同目录下。\n可从官方仓库下载。');
+            return;
+        }
 
-            const STORAGE_KEY = 'renqing_data_v2';
-            const PRESET_FOLDERS = [
-                { name: '结婚', emoji: '💒' },
-                { name: '乔迁', emoji: '🏠' },
-                { name: '满月', emoji: '👶' },
-                { name: '祝寿', emoji: '🎂' },
-                { name: '升学', emoji: '🎓' },
-                { name: '白事', emoji: '🕯️' },
-            ];
-            const EMOJI_OPTIONS = ['💒', '🏠', '👶', '🎂', '🎓', '🕯️', '🎁', '💝', '🎉', '🎊', '💍', '🏡', '🍼', '🎈',
-                '📚', '💰', '💵', '💸', '🎀', '🎗️', '📁', '❤️', '🌟', '🎯'
-            ];
+        const STORAGE_KEY = 'renqing_data_v2';
+        const PRESET_FOLDERS = [
+            { name: '结婚', emoji: '💒' },
+            { name: '乔迁', emoji: '🏠' },
+            { name: '满月', emoji: '👶' },
+            { name: '祝寿', emoji: '🎂' },
+            { name: '升学', emoji: '🎓' },
+            { name: '白事', emoji: '🕯️' }
+        ];
+        const EMOJI_OPTIONS = ['💒','🏠','👶','🎂','🎓','🕯️','🎁','💝','🎉','🎊','💍','🏡','🍼','🎈','📚','💰','💵','💸','🎀','🎗️','📁','❤️','🌟','🎯'];
 
-            // DOM 引用
-            const $splash = document.getElementById('splash-screen');
-            const $folderGrid = document.getElementById('folder-grid');
-            const $navTitle = document.getElementById('nav-title');
-            const $bottomNav = document.getElementById('bottom-nav');
-            const $fabAdd = document.getElementById('fab-add-folder');
-            const $popupMenu = document.getElementById('popup-menu');
-            const $overlay = document.getElementById('global-overlay');
-            const $toast = document.getElementById('toast');
-            const $barGreen = document.getElementById('bar-green');
-            const $barRed = document.getElementById('bar-red');
-            const $lblIncomeAmt = document.getElementById('lbl-income-amt');
-            const $lblExpenseAmt = document.getElementById('lbl-expense-amt');
-            const $folderPage = document.getElementById('folder-page');
-            const $folderDetailTitle = document.getElementById('folder-detail-title');
-            const $entriesList = document.getElementById('entries-list');
-            const $folderSearchInput = document.getElementById('folder-search-input');
-            const $aboutPage = document.getElementById('about-page');
-            const $entryDetailPopup = document.getElementById('entry-detail-popup');
-            const $detailPopupTitle = document.getElementById('detail-popup-title');
-            const $detailLeftRecords = document.getElementById('detail-left-records');
-            const $detailRightRecords = document.getElementById('detail-right-records');
-            const $importFileInput = document.getElementById('import-file-input');
+        // DOM 引用
+        const $ = id => document.getElementById(id);
+        const $splash = $('splash-screen');
+        const $folderGrid = $('folder-grid');
+        const $navTitle = $('nav-title');
+        const $bottomNav = $('bottom-nav');
+        const $fabAdd = $('fab-add-folder');
+        const $popupMenu = $('popup-menu');
+        const $overlay = $('global-overlay');
+        const $toast = $('toast');
+        const $barGreen = $('bar-green');
+        const $barRed = $('bar-red');
+        const $lblIncomeAmt = $('lbl-income-amt');
+        const $lblExpenseAmt = $('lbl-expense-amt');
+        const $folderPage = $('folder-page');
+        const $folderDetailTitle = $('folder-detail-title');
+        const $entriesList = $('entries-list');
+        const $folderSearchInput = $('folder-search-input');
+        const $aboutPage = $('about-page');
+        const $entryDetailPopup = $('entry-detail-popup');
+        const $detailPopupTitle = $('detail-popup-title');
+        const $detailLeftRecords = $('detail-left-records');
+        const $detailRightRecords = $('detail-right-records');
+        const $importFileInput = $('import-file-input');
 
-            let currentTab = 'income';
-            let currentPage = 'main';
-            let currentFolderId = null;
-            let appData = { incomeFolders: [], expenseFolders: [] };
-            let popupTarget = null;
-            let popupMenuVisible = false;
-            let entryDetailVisible = false;
-            let toastTimer = null;
+        let currentTab = 'income';
+        let currentPage = 'main';
+        let currentFolderId = null;
+        let appData = { incomeFolders: [], expenseFolders: [] };
+        let popupTarget = null;
+        let popupMenuVisible = false;
+        let entryDetailVisible = false;
+        let toastTimer = null;
 
-            function generateId() { return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9); }
-
-            function loadData() {
-                try {
-                    const raw = localStorage.getItem(STORAGE_KEY);
-                    if (raw) {
-                        const parsed = JSON.parse(raw);
-                        appData.incomeFolders = parsed.incomeFolders || [];
-                        appData.expenseFolders = parsed.expenseFolders || [];
-                    } else {
-                        initPresetData();
-                    }
-                } catch (e) { initPresetData(); }
-                ensurePresetFolders();
-            }
-
-            function saveData() {
-                try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch (e) { showToast('⚠️ 存储空间不足'); }
-            }
-
-            function initPresetData() {
-                appData.incomeFolders = PRESET_FOLDERS.map(f => ({ id: generateId(), name: f.name, emoji: f.emoji,
-                    entries: [] }));
-                appData.expenseFolders = PRESET_FOLDERS.map(f => ({ id: generateId(), name: f.name, emoji: f.emoji,
-                    entries: [] }));
-                saveData();
-            }
-
-            function ensurePresetFolders() {
-                PRESET_FOLDERS.forEach(pf => {
-                    if (!appData.incomeFolders.find(f => f.name === pf.name)) appData.incomeFolders.push({ id: generateId(),
-                        name: pf.name, emoji: pf.emoji, entries: [] });
-                    if (!appData.expenseFolders.find(f => f.name === pf.name)) appData.expenseFolders.push({ id: generateId(),
-                        name: pf.name, emoji: pf.emoji, entries: [] });
-                });
-                saveData();
-            }
-
-            function getCurrentFolders() { return currentTab === 'income' ? appData.incomeFolders : appData.expenseFolders; }
-
-            function getFolderById(folderId) {
-                let found = appData.incomeFolders.find(f => f.id === folderId);
-                if (found) return { folder: found, type: 'income' };
-                found = appData.expenseFolders.find(f => f.id === folderId);
-                return found ? { folder: found, type: 'expense' } : null;
-            }
-
-            function getTotalIncome() { let t = 0;
-                appData.incomeFolders.forEach(f => f.entries.forEach(e => t += parseFloat(e.amount) || 0)); return t; }
-
-            function getTotalExpense() { let t = 0;
-                appData.expenseFolders.forEach(f => f.entries.forEach(e => t += parseFloat(e.amount) || 0)); return t; }
-
-            function getFolderTotal(folder) { let t = 0;
-                folder.entries.forEach(e => t += parseFloat(e.amount) || 0); return t; }
-
-            function showToast(msg) {
-                if (toastTimer) clearTimeout(toastTimer);
-                $toast.textContent = msg;
-                $toast.classList.add('show');
-                toastTimer = setTimeout(() => { $toast.classList.remove('show');
-                    toastTimer = null; }, 1800);
-            }
-
-            function showPopupMenu(x, y, target) {
-                popupTarget = target;
-                popupMenuVisible = true;
-                $popupMenu.querySelector('[data-action="edit"]').textContent = target.type === 'folder' ? '✏️ 修改文件夹' :
-                    '✏️ 修改条目';
-                $popupMenu.querySelector('[data-action="delete"]').textContent = target.type === 'folder' ? '🗑️ 删除文件夹' :
-                    '🗑️ 删除条目';
-                $popupMenu.classList.add('show');
-                $overlay.classList.add('show');
-                const menuW = $popupMenu.offsetWidth || 130,
-                    menuH = $popupMenu.offsetHeight || 90;
-                let left = x - menuW / 2,
-                    top = y - menuH - 10;
-                if (left < 8) left = 8;
-                if (left + menuW > window.innerWidth - 8) left = window.innerWidth - menuW - 8;
-                if (top < 60) top = y + 20;
-                if (top + menuH > window.innerHeight - 20) top = window.innerHeight - menuH - 20;
-                $popupMenu.style.left = left + 'px';
-                $popupMenu.style.top = top + 'px';
-            }
-
-            function hidePopupMenu() { popupMenuVisible = false;
-                popupTarget = null;
-                $popupMenu.classList.remove('show');
-                $overlay.classList.remove('show'); }
-
-            function hideEntryDetailPopup() { entryDetailVisible = false;
-                $entryDetailPopup.classList.remove('show');
-                $overlay.classList.remove('show'); }
-
-            function updateBarChart() {
-                const totalIn = getTotalIncome(),
-                    totalEx = getTotalExpense();
-                $lblIncomeAmt.textContent = totalIn.toFixed(0);
-                $lblExpenseAmt.textContent = totalEx.toFixed(0);
-                if (totalIn === 0 && totalEx === 0) { $barGreen.style.width = '100%';
-                    $barRed.style.width = '0%'; } else if (totalIn === 0 && totalEx > 0) { $barGreen.style.width = '0%';
-                    $barRed.style.width = '100%'; } else if (totalEx === 0) { $barGreen.style.width = '100%';
-                    $barRed.style.width = '0%'; } else {
-                    let redPct = (totalEx / totalIn) * 100; if (redPct > 100) redPct = 100; if (redPct < 0) redPct = 0;
-                    $barGreen.style.width = (100 - redPct) + '%';
-                    $barRed.style.width = redPct + '%';
-                }
-            }
-
-            function renderFolderGrid() {
-                const folders = getCurrentFolders();
-                $folderGrid.innerHTML = '';
-                if (folders.length === 0) { $folderGrid.innerHTML =
-                        '<div style="grid-column:1/-1;text-align:center;color:#bbb;padding:60px 0;">暂无文件夹，点击右下角+新增</div>'; }
-                folders.forEach(folder => {
-                    const card = document.createElement('div');
-                    card.className = 'folder-card';
-                    card.setAttribute('data-folder-id', folder.id);
-                    const total = getFolderTotal(folder),
-                        count = folder.entries.length;
-                    card.innerHTML =
-                        `<div class="folder-emoji">${folder.emoji}</div><div class="folder-name">${folder.name}</div><div class="folder-stats">${count}笔记录 共${total.toFixed(0)}元</div>`;
-                    card.addEventListener('click', (e) => { if (popupMenuVisible) { hidePopupMenu(); return; } if (
-                            entryDetailVisible) { hideEntryDetailPopup(); return; }
-                        openFolder(folder.id); });
-                    let lpTimer = null,
-                        tsPos = { x: 0, y: 0 };
-                    const startLP = (x, y) => { tsPos = { x, y };
-                        lpTimer = setTimeout(() => { showPopupMenu(tsPos.x, tsPos.y, { type: 'folder', id: folder.id });
-                            lpTimer = null; }, 600); };
-                    card.addEventListener('touchstart', e => startLP(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
-                    card.addEventListener('touchend', () => { if (lpTimer) clearTimeout(lpTimer); });
-                    card.addEventListener('touchmove', () => { if (lpTimer) clearTimeout(lpTimer); });
-                    card.addEventListener('mousedown', e => startLP(e.clientX, e.clientY));
-                    card.addEventListener('mouseup', () => { if (lpTimer) clearTimeout(lpTimer); });
-                    card.addEventListener('mouseleave', () => { if (lpTimer) clearTimeout(lpTimer); });
-                    $folderGrid.appendChild(card);
-                });
-                updateBarChart();
-            }
-
-            function openFolder(folderId) {
-                const res = getFolderById(folderId); if (!res) return;
-                currentFolderId = folderId;
-                currentPage = 'folder';
-                $folderPage.classList.add('show');
-                $folderDetailTitle.textContent = res.folder.emoji + ' ' + res.folder.name;
-                $folderSearchInput.value = '';
-                renderEntries();
-                $bottomNav.style.display = 'none';
-                $fabAdd.style.display = 'none';
-            }
-
-            function closeFolder() {
-                currentPage = 'main';
-                currentFolderId = null;
-                $folderPage.classList.remove('show');
-                $bottomNav.style.display = '';
-                $fabAdd.style.display = '';
-                hidePopupMenu();
-                hideEntryDetailPopup();
-                renderFolderGrid();
-                updateBarChart();
-            }
-
-            function getCurrentFolderObj() { return currentFolderId ? getFolderById(currentFolderId) : null; }
-
-            function renderEntries(searchTerm = '') {
-                const res = getCurrentFolderObj(); if (!res) return;
-                let entries = res.folder.entries;
-                if (searchTerm.trim()) entries = entries.filter(e => e.name.includes(searchTerm.trim()));
-                $entriesList.innerHTML = '';
-                if (entries.length === 0) { $entriesList.innerHTML = '<div class="no-entries">暂无记录</div>'; }
-                entries.forEach(entry => {
-                    const item = document.createElement('div');
-                    item.className = 'entry-item';
-                    item.setAttribute('data-entry-id', entry.id);
-                    item.innerHTML =
-                        `<div class="entry-left"><span class="entry-name">${escapeHtml(entry.name)}</span><span class="entry-note">${escapeHtml(entry.note || '')}</span></div><div class="entry-right"><span class="entry-amount">${parseFloat(entry.amount).toFixed(2)}元</span><span class="entry-date">${entry.date}</span></div>`;
-                    item.addEventListener('click', () => { if (popupMenuVisible) { hidePopupMenu(); return; }
-                        showEntryDetailPopup(entry.name); });
-                    let lpTimer = null,
-                        tsPos = { x: 0, y: 0 };
-                    const startLP = (x, y) => { tsPos = { x, y };
-                        lpTimer = setTimeout(() => { showPopupMenu(tsPos.x, tsPos.y, { type: 'entry', id: entry.id,
-                                folderId: currentFolderId });
-                            lpTimer = null; }, 600); };
-                    item.addEventListener('touchstart', e => startLP(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
-                    item.addEventListener('touchend', () => { if (lpTimer) clearTimeout(lpTimer); });
-                    item.addEventListener('touchmove', () => { if (lpTimer) clearTimeout(lpTimer); });
-                    item.addEventListener('mousedown', e => startLP(e.clientX, e.clientY));
-                    item.addEventListener('mouseup', () => { if (lpTimer) clearTimeout(lpTimer); });
-                    item.addEventListener('mouseleave', () => { if (lpTimer) clearTimeout(lpTimer); });
-                    $entriesList.appendChild(item);
-                });
-            }
-
-            function showEntryDetailPopup(personName) {
-                entryDetailVisible = true;
-                $detailPopupTitle.textContent = '👤 ' + personName + ' 的全部记录';
-                let incRecs = [],
-                    expRecs = [];
-                appData.incomeFolders.forEach(f => f.entries.forEach(e => { if (e.name === personName) incRecs.push({
-                    folderName: f.name,
-                    amount: e.amount,
-                    date: e.date,
-                    note: e.note }); }));
-                appData.expenseFolders.forEach(f => f.entries.forEach(e => { if (e.name === personName) expRecs.push({
-                    folderName: f.name,
-                    amount: e.amount,
-                    date: e.date,
-                    note: e.note }); }));
-                $detailLeftRecords.innerHTML = incRecs.length === 0 ?
-                    '<div style="color:#bbb;font-size:0.7rem;text-align:center;">无记录</div>' : incRecs.map(r =>
-                        `<div class="detail-record">📁${r.folderName} | 💰${parseFloat(r.amount).toFixed(2)}元 | 📅${r.date}</div>`
-                        ).join('');
-                $detailRightRecords.innerHTML = expRecs.length === 0 ?
-                    '<div style="color:#bbb;font-size:0.7rem;text-align:center;">无记录</div>' : expRecs.map(r =>
-                        `<div class="detail-record">📁${r.folderName} | 💸${parseFloat(r.amount).toFixed(2)}元 | 📅${r.date}</div>`
-                        ).join('');
-                $entryDetailPopup.classList.add('show');
-                $overlay.classList.add('show');
-            }
-
-            function escapeHtml(str) { const d = document.createElement('div');
-                d.textContent = str; return d.innerHTML; }
-
-            function handlePopupAction(action) {
-                if (!popupTarget) return;
-                if (action === 'edit') {
-                    if (popupTarget.type === 'folder') editFolder(popupTarget.id);
-                    else editEntry(popupTarget.folderId, popupTarget.id);
-                } else if (action === 'delete') {
-                    if (popupTarget.type === 'folder') deleteFolder(popupTarget.id);
-                    else deleteEntry(popupTarget.folderId, popupTarget.id);
-                }
-                hidePopupMenu();
-            }
-
-            function editFolder(folderId) {
-                const res = getFolderById(folderId); if (!res) return;
-                showFolderFormModal('修改文件夹', res.folder.name, res.folder.emoji, (newName, newEmoji) => {
-                    res.folder.name = newName;
-                    res.folder.emoji = newEmoji;
-                    saveData();
-                    renderFolderGrid(); if (currentPage === 'folder' && currentFolderId === folderId) $folderDetailTitle
-                        .textContent = newEmoji + ' ' + newName;
-                    showToast('✅ 文件夹已更新');
-                });
-            }
-
-            function deleteFolder(folderId) {
-                const res = getFolderById(folderId); if (!res) return;
-                showConfirmModal(`确定删除文件夹"${res.folder.name}"及其所有记录吗？`, () => {
-                    if (res.type === 'income') appData.incomeFolders = appData.incomeFolders.filter(f => f.id !== folderId);
-                    else appData.expenseFolders = appData.expenseFolders.filter(f => f.id !== folderId);
-                    saveData(); if (currentPage === 'folder' && currentFolderId === folderId) closeFolder();
-                    renderFolderGrid();
-                    updateBarChart();
-                    showToast('🗑️ 文件夹已删除');
-                });
-            }
-
-            function editEntry(folderId, entryId) {
-                const res = getFolderById(folderId); if (!res) return;
-                const entry = res.folder.entries.find(e => e.id === entryId); if (!entry) return;
-                showEntryFormModal('修改记录', entry.name, entry.amount, entry.date, entry.note, (name, amount, date, note) => {
-                    entry.name = name;
-                    entry.amount = parseFloat(amount);
-                    entry.date = date;
-                    entry.note = note;
-                    saveData();
-                    renderEntries($folderSearchInput.value);
-                    renderFolderGrid();
-                    updateBarChart();
-                    showToast('✅ 记录已更新');
-                });
-            }
-
-            function deleteEntry(folderId, entryId) {
-                const res = getFolderById(folderId); if (!res) return;
-                showConfirmModal('确定删除该条记录吗？', () => {
-                    res.folder.entries = res.folder.entries.filter(e => e.id !== entryId);
-                    saveData();
-                    renderEntries($folderSearchInput.value);
-                    renderFolderGrid();
-                    updateBarChart();
-                    showToast('🗑️ 记录已删除');
-                });
-            }
-
-            function showFolderFormModal(title, defName, defEmoji, cb) {
-                const modal = document.createElement('div');
-                modal.className = 'modal-dialog show';
-                modal.style.zIndex = '650';
-                let selEmoji = defEmoji;
-                modal.innerHTML =
-                    `<div class="modal-title">${title}</div><div class="form-group"><label>文件夹名称</label><input type="text" id="folder-form-name" value="${escapeHtml(defName)}" placeholder="请输入名称"></div><div class="form-group"><label>选择图标</label><div class="emoji-picker" id="emoji-picker-folder">${EMOJI_OPTIONS.map(e => `<span class="emoji-option${e===selEmoji?' selected':''}" data-emoji="${e}">${e}</span>`).join('')}</div></div><div class="btn-row"><button class="btn btn-cancel" id="modal-cancel-folder">取消</button><button class="btn btn-primary" id="modal-confirm-folder">确认</button></div>`;
-                document.body.appendChild(modal);
-                modal.querySelector('#emoji-picker-folder').addEventListener('click', e => {
-                    const opt = e.target.closest('.emoji-option'); if (!opt) return;
-                    modal.querySelectorAll('.emoji-option').forEach(o => o.classList.remove('selected'));
-                    opt.classList.add('selected');
-                    selEmoji = opt.dataset.emoji;
-                });
-                modal.querySelector('#modal-cancel-folder').addEventListener('click', () => document.body.removeChild(modal));
-                modal.querySelector('#modal-confirm-folder').addEventListener('click', () => {
-                    const name = modal.querySelector('#folder-form-name').value.trim();
-                    if (!name) { showToast('⚠️ 请输入文件夹名称'); return; }
-                    document.body.removeChild(modal);
-                    cb(name, selEmoji);
-                });
-                modal.addEventListener('click', function(e) { if (e.target === modal) document.body.removeChild(modal); });
-            }
-
-            function showEntryFormModal(title, defName, defAmount, defDate, defNote, cb) {
-                const modal = document.createElement('div');
-                modal.className = 'modal-dialog show';
-                modal.style.zIndex = '650';
-                const today = new Date().toISOString().split('T')[0];
-                const useDate = defDate || today;
-                modal.innerHTML =
-                    `<div class="modal-title">${title}</div><div class="form-group"><label>姓名</label><input type="text" id="entry-form-name" value="${escapeHtml(defName||'')}" placeholder="请输入姓名"></div><div class="form-group"><label>金额（元）</label><input type="number" id="entry-form-amount" value="${defAmount||''}" placeholder="请输入金额" step="0.01" min="0"></div><div class="form-group"><label>日期</label><input type="date" id="entry-form-date" value="${useDate}"></div><div class="form-group"><label>备注</label><input type="text" id="entry-form-note" value="${escapeHtml(defNote||'')}" placeholder="可选备注"></div><div class="btn-row"><button class="btn btn-cancel" id="modal-cancel-entry">取消</button><button class="btn btn-primary" id="modal-confirm-entry">确认</button></div>`;
-                document.body.appendChild(modal);
-                modal.querySelector('#modal-cancel-entry').addEventListener('click', () => document.body.removeChild(modal));
-                modal.querySelector('#modal-confirm-entry').addEventListener('click', () => {
-                    const name = modal.querySelector('#entry-form-name').value.trim();
-                    const amount = modal.querySelector('#entry-form-amount').value;
-                    const date = modal.querySelector('#entry-form-date').value;
-                    const note = modal.querySelector('#entry-form-note').value.trim();
-                    if (!name) { showToast('⚠️ 请输入姓名'); return; }
-                    if (!amount || parseFloat(amount) < 0) { showToast('⚠️ 请输入有效金额'); return; }
-                    if (!date) { showToast('⚠️ 请选择日期'); return; }
-                    document.body.removeChild(modal);
-                    cb(name, amount, date, note);
-                });
-                modal.addEventListener('click', function(e) { if (e.target === modal) document.body.removeChild(modal); });
-            }
-
-            function showConfirmModal(msg, cb) {
-                const modal = document.createElement('div');
-                modal.className = 'modal-dialog show';
-                modal.style.zIndex = '650';
-                modal.innerHTML =
-                    `<div style="text-align:center;padding:10px 0;font-size:0.95rem;color:#333;">${msg}</div><div class="btn-row"><button class="btn btn-cancel" id="modal-cancel-confirm">取消</button><button class="btn btn-danger" id="modal-confirm-confirm">确认删除</button></div>`;
-                document.body.appendChild(modal);
-                modal.querySelector('#modal-cancel-confirm').addEventListener('click', () => document.body.removeChild(modal));
-                modal.querySelector('#modal-confirm-confirm').addEventListener('click', () => { document.body.removeChild(modal);
-                    cb(); });
-                modal.addEventListener('click', function(e) { if (e.target === modal) document.body.removeChild(modal); });
-            }
-
-            function addNewFolder() {
-                showFolderFormModal('新增文件夹', '', '📁', (name, emoji) => {
-                    const folders = getCurrentFolders();
-                    folders.push({ id: generateId(), name, emoji, entries: [] });
-                    saveData();
-                    renderFolderGrid();
-                    updateBarChart();
-                    showToast('✅ 文件夹已创建');
-                });
-            }
-
-            function addNewEntry() {
-                if (!currentFolderId) return;
-                showEntryFormModal('记一笔', '', '', '', '', (name, amount, date, note) => {
-                    const res = getCurrentFolderObj(); if (!res) return;
-                    res.folder.entries.push({ id: generateId(), name, amount: parseFloat(amount), date, note });
-                    saveData();
-                    renderEntries($folderSearchInput.value);
-                    renderFolderGrid();
-                    updateBarChart();
-                    showToast('✅ 记录已添加');
-                });
-            }
-
-            function exportData() {
-                const rows = [];
-                appData.incomeFolders.forEach(f => f.entries.forEach(e => rows.push({ '类型': '收入', '文件夹名': f.name, '姓名': e.name,
-                    '金额': parseFloat(e.amount), '日期': e.date, '备注': e.note || '' })));
-                appData.expenseFolders.forEach(f => f.entries.forEach(e => rows.push({ '类型': '支出', '文件夹名': f.name, '姓名': e.name,
-                    '金额': parseFloat(e.amount), '日期': e.date, '备注': e.note || '' })));
-                if (rows.length === 0) { showToast('⚠️ 没有数据可导出'); return; }
-                const ws = XLSX.utils.json_to_sheet(rows);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, '人情往来数据');
-                const d = new Date();
-                const filename = `人情往来备份_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.xlsx`;
-                XLSX.writeFile(wb, filename);
-                showToast('✅ 数据已导出: ' + filename);
-            }
-
-            function importData(file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const wb = XLSX.read(e.target.result, { type: 'array' });
-                        const ws = wb.Sheets[wb.SheetNames[0]];
-                        const rows = XLSX.utils.sheet_to_json(ws);
-                        if (rows.length === 0) { showToast('⚠️ 文件中没有数据'); return; }
-                        let imp = 0,
-                            skip = 0;
-                        rows.forEach(row => {
-                            const type = row['类型'] || '';
-                            const folderName = (row['文件夹名'] || '').toString().trim();
-                            const name = (row['姓名'] || '').toString().trim();
-                            const amount = parseFloat(row['金额']) || 0;
-                            const date = (row['日期'] || '').toString().trim();
-                            const note = (row['备注'] || '').toString().trim();
-                            if (!folderName || !name || !date) return;
-                            let targets = [];
-                            if (type === '收入') targets = appData.incomeFolders.filter(f => f.name ===
-                                folderName);
-                            else if (type === '支出') targets = appData.expenseFolders.filter(f => f.name ===
-                                folderName);
-                            else { targets = [...appData.incomeFolders.filter(f => f.name === folderName), ...
-                                    appData.expenseFolders.filter(f => f.name === folderName)
-                                ]; }
-                            targets.forEach(folder => {
-                                if (folder.entries.some(e => e.name === name)) { skip++; } else { folder.entries
-                                    .push({ id: generateId(), name, amount, date, note });
-                                    imp++; }
-                            });
-                        });
-                        saveData();
-                        renderFolderGrid();
-                        updateBarChart();
-                        if (currentPage === 'folder') renderEntries($folderSearchInput.value);
-                        showToast(`✅ 导入${imp}条，跳过${skip}条重复`);
-                    } catch (err) { showToast('❌ 文件解析失败');
-                        console.error(err); }
-                };
-                reader.readAsArrayBuffer(file);
-            }
-
-            function triggerImport() { $importFileInput.click(); }
-
-            function openAbout() { currentPage = 'about';
-                $aboutPage.classList.add('show');
-                $bottomNav.style.display = 'none';
-                $fabAdd.style.display = 'none';
-                hidePopupMenu();
-                hideEntryDetailPopup(); }
-
-            function closeAbout() { currentPage = 'main';
-                $aboutPage.classList.remove('show');
-                $bottomNav.style.display = '';
-                $fabAdd.style.display = ''; }
-
-            function switchTab(tab) {
-                if (currentTab === tab) return;
-                currentTab = tab;
-                $navTitle.textContent = tab === 'income' ? '收入' : '支出';
-                document.querySelectorAll('#bottom-nav .tab-btn').forEach(b => b.classList.remove('active'));
-                const active = document.querySelector(`#bottom-nav .tab-btn[data-tab="${tab}"]`);
-                if (active) active.classList.add('active');
-                hidePopupMenu();
-                hideEntryDetailPopup();
-                renderFolderGrid();
-                updateBarChart();
-            }
-
-            // 全局点击
-            document.addEventListener('click', function(e) {
-                if (popupMenuVisible && !$popupMenu.contains(e.target) && e.target !== $overlay) { hidePopupMenu(); }
-                if (entryDetailVisible && !$entryDetailPopup.contains(e.target) && e.target !== $overlay) {
-                    hideEntryDetailPopup(); }
-                if (e.target === $overlay) { hidePopupMenu();
-                    hideEntryDetailPopup(); }
+        function generateId() { return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2,9); }
+        function loadData() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const d = JSON.parse(raw);
+                    appData.incomeFolders = d.incomeFolders || [];
+                    appData.expenseFolders = d.expenseFolders || [];
+                } else initPresetData();
+            } catch (e) { initPresetData(); }
+            ensurePresetFolders();
+        }
+        function saveData() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch(e) { showToast('⚠️ 存储空间不足'); } }
+        function initPresetData() {
+            appData.incomeFolders = PRESET_FOLDERS.map(f => ({ id: generateId(), name: f.name, emoji: f.emoji, entries: [] }));
+            appData.expenseFolders = PRESET_FOLDERS.map(f => ({ id: generateId(), name: f.name, emoji: f.emoji, entries: [] }));
+            saveData();
+        }
+        function ensurePresetFolders() {
+            PRESET_FOLDERS.forEach(pf => {
+                if (!appData.incomeFolders.find(f => f.name === pf.name)) appData.incomeFolders.push({ id: generateId(), name: pf.name, emoji: pf.emoji, entries: [] });
+                if (!appData.expenseFolders.find(f => f.name === pf.name)) appData.expenseFolders.push({ id: generateId(), name: pf.name, emoji: pf.emoji, entries: [] });
             });
-
-            // 手势
-            let touchStartX = 0,
-                touchStartY = 0,
-                gestureHandled = false;
-            document.addEventListener('touchstart', e => { if (e.touches.length === 1) { touchStartX = e.touches[0].clientX;
-                    touchStartY = e.touches[0].clientY;
-                    gestureHandled = false; } }, { passive: true });
-            document.addEventListener('touchend', e => {
-                if (gestureHandled) return;
-                if (e.changedTouches.length === 1) {
-                    const dx = e.changedTouches[0].clientX - touchStartX,
-                        dy = e.changedTouches[0].clientY - touchStartY;
-                    const fromLeft = touchStartX < 35,
-                        fromRight = touchStartX > window.innerWidth - 35;
-                    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5 && ((fromLeft && dx > 0) || (fromRight && dx < 0))) {
-                        gestureHandled = true;
-                        if (currentPage === 'folder') closeFolder();
-                        else if (currentPage === 'about') closeAbout();
-                        else if (currentPage === 'main') showExitConfirm();
-                    }
-                }
-            }, { passive: true });
-
-            function showExitConfirm() {
-                const modal = document.createElement('div');
-                modal.className = 'modal-dialog show';
-                modal.style.zIndex = '650';
-                modal.innerHTML =
-                    `<div style="text-align:center;padding:10px 0;font-size:1rem;color:#333;font-weight:600;">确定退出应用吗？</div><div class="btn-row"><button class="btn btn-cancel" id="exit-cancel">取消</button><button class="btn btn-danger" id="exit-confirm">退出</button></div>`;
-                document.body.appendChild(modal);
-                modal.querySelector('#exit-cancel').addEventListener('click', () => document.body.removeChild(modal));
-                modal.querySelector('#exit-confirm').addEventListener('click', () => {
-                    document.body.removeChild(modal);
-                    if (window.navigator?.app?.exitApp) window.navigator.app.exitApp();
-                    else { window.close();
-                        showToast('请通过系统方式关闭应用'); }
-                });
-                modal.addEventListener('click', function(e) { if (e.target === modal) document.body.removeChild(modal); });
+            saveData();
+        }
+        function getCurrentFolders() { return currentTab === 'income' ? appData.incomeFolders : appData.expenseFolders; }
+        function getFolderById(folderId) {
+            let f = appData.incomeFolders.find(x => x.id === folderId);
+            if (f) return { folder: f, type: 'income' };
+            f = appData.expenseFolders.find(x => x.id === folderId);
+            return f ? { folder: f, type: 'expense' } : null;
+        }
+        function getTotalIncome() { let t=0; appData.incomeFolders.forEach(f => f.entries.forEach(e => t += parseFloat(e.amount)||0)); return t; }
+        function getTotalExpense() { let t=0; appData.expenseFolders.forEach(f => f.entries.forEach(e => t += parseFloat(e.amount)||0)); return t; }
+        function getFolderTotal(folder) { let t=0; folder.entries.forEach(e => t += parseFloat(e.amount)||0); return t; }
+        function showToast(msg) {
+            if (toastTimer) clearTimeout(toastTimer);
+            $toast.textContent = msg; $toast.classList.add('show');
+            toastTimer = setTimeout(() => { $toast.classList.remove('show'); toastTimer=null; }, 1800);
+        }
+        function showPopupMenu(x,y,target) {
+            popupTarget = target; popupMenuVisible = true;
+            $popupMenu.querySelector('[data-action="edit"]').textContent = target.type==='folder'?'✏️ 修改文件夹':'✏️ 修改条目';
+            $popupMenu.querySelector('[data-action="delete"]').textContent = target.type==='folder'?'🗑️ 删除文件夹':'🗑️ 删除条目';
+            $popupMenu.classList.add('show'); $overlay.classList.add('show');
+            const mw = $popupMenu.offsetWidth||130, mh = $popupMenu.offsetHeight||90;
+            let left = x - mw/2, top = y - mh - 10;
+            if (left < 8) left = 8;
+            if (left + mw > window.innerWidth-8) left = window.innerWidth - mw - 8;
+            if (top < 60) top = y + 20;
+            if (top + mh > window.innerHeight-20) top = window.innerHeight - mh - 20;
+            $popupMenu.style.left = left + 'px';
+            $popupMenu.style.top = top + 'px';
+        }
+        function hidePopupMenu() { popupMenuVisible=false; popupTarget=null; $popupMenu.classList.remove('show'); $overlay.classList.remove('show'); }
+        function hideEntryDetailPopup() { entryDetailVisible=false; $entryDetailPopup.classList.remove('show'); $overlay.classList.remove('show'); }
+        function updateBarChart() {
+            const totalIn = getTotalIncome(), totalEx = getTotalExpense();
+            $lblIncomeAmt.textContent = totalIn.toFixed(0);
+            $lblExpenseAmt.textContent = totalEx.toFixed(0);
+            if (totalIn===0 && totalEx===0) { $barGreen.style.width='100%'; $barRed.style.width='0%'; }
+            else if (totalIn===0 && totalEx>0) { $barGreen.style.width='0%'; $barRed.style.width='100%'; }
+            else if (totalEx===0) { $barGreen.style.width='100%'; $barRed.style.width='0%'; }
+            else {
+                let redPct = (totalEx/totalIn)*100;
+                if (redPct > 100) redPct=100; if (redPct < 0) redPct=0;
+                $barGreen.style.width = (100-redPct) + '%';
+                $barRed.style.width = redPct + '%';
             }
-
-            // 事件绑定
-            document.querySelectorAll('#bottom-nav .tab-btn').forEach(b => b.addEventListener('click', function() {
-                switchTab(this.dataset.tab); }));
-            $fabAdd.addEventListener('click', addNewFolder);
-            $popupMenu.querySelector('[data-action="edit"]').addEventListener('click', () => handlePopupAction('edit'));
-            $popupMenu.querySelector('[data-action="delete"]').addEventListener('click', () => handlePopupAction('delete'));
-            document.getElementById('folder-back-btn').addEventListener('click', closeFolder);
-            document.getElementById('about-back-btn').addEventListener('click', closeAbout);
-            $folderSearchInput.addEventListener('input', function() { renderEntries(this.value); });
-            document.getElementById('btn-add-entry').addEventListener('click', addNewEntry);
-            document.getElementById('btn-backup').addEventListener('click', function() {
-                hidePopupMenu();
-                hideEntryDetailPopup();
-                const modal = document.createElement('div');
-                modal.className = 'modal-dialog show';
-                modal.style.zIndex = '650';
-                modal.innerHTML =
-                    `<div class="modal-title">数据备份与恢复</div><div style="display:flex;flex-direction:column;gap:10px;"><button class="btn btn-primary" id="do-export" style="width:100%;">📤 导出数据 (xlsx)</button><button class="btn btn-primary" id="do-import" style="width:100%;background:#5b8c5a;">📥 导入数据 (xlsx)</button><button class="btn btn-cancel" id="do-cancel-backup" style="width:100%;">取消</button></div>`;
-                document.body.appendChild(modal);
-                modal.querySelector('#do-export').addEventListener('click', () => { document.body.removeChild(modal);
-                    exportData(); });
-                modal.querySelector('#do-import').addEventListener('click', () => { document.body.removeChild(modal);
-                    triggerImport(); });
-                modal.querySelector('#do-cancel-backup').addEventListener('click', () => document.body.removeChild(modal));
-                modal.addEventListener('click', function(e) { if (e.target === modal) document.body.removeChild(modal); });
+        }
+        function renderFolderGrid() {
+            const folders = getCurrentFolders();
+            $folderGrid.innerHTML = '';
+            if (folders.length===0) { $folderGrid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#bbb;padding:60px 0;">暂无文件夹，点击右下角+新增</div>'; }
+            folders.forEach(folder => {
+                const card = document.createElement('div'); card.className = 'folder-card'; card.setAttribute('data-folder-id', folder.id);
+                const total = getFolderTotal(folder), count = folder.entries.length;
+                card.innerHTML = `<div class="folder-emoji">${folder.emoji}</div><div class="folder-name">${folder.name}</div><div class="folder-stats">${count}笔记录 共${total.toFixed(0)}元</div>`;
+                // 点击打开文件夹（保留原有 click 逻辑，但处理菜单冲突）
+                card.addEventListener('click', (e) => {
+                    if (popupMenuVisible) { hidePopupMenu(); return; }
+                    if (entryDetailVisible) { hideEntryDetailPopup(); return; }
+                    openFolder(folder.id);
+                });
+                // 长按处理
+                let lpTimer = null, tsPos = { x:0, y:0 };
+                const startLP = (x,y) => { tsPos={x,y}; lpTimer=setTimeout(() => { showPopupMenu(tsPos.x, tsPos.y, { type:'folder', id:folder.id }); lpTimer=null; }, 600); };
+                card.addEventListener('touchstart', e => startLP(e.touches[0].clientX, e.touches[0].clientY), { passive:true });
+                card.addEventListener('touchend', () => { if (lpTimer) clearTimeout(lpTimer); });
+                card.addEventListener('touchmove', () => { if (lpTimer) clearTimeout(lpTimer); });
+                card.addEventListener('mousedown', e => startLP(e.clientX, e.clientY));
+                card.addEventListener('mouseup', () => { if (lpTimer) clearTimeout(lpTimer); });
+                card.addEventListener('mouseleave', () => { if (lpTimer) clearTimeout(lpTimer); });
+                $folderGrid.appendChild(card);
             });
-            document.getElementById('btn-about').addEventListener('click', openAbout);
-            $importFileInput.addEventListener('change', function() { if (this.files && this.files[0]) { importData(this.files[
-                    0]);
-                    this.value = ''; } });
-
-            // 初始化
-            loadData();
-            renderFolderGrid();
             updateBarChart();
-            $navTitle.textContent = '收入';
-            setTimeout(() => { $splash.classList.add('fade-out');
-                setTimeout(() => { $splash.style.display = 'none'; }, 600); }, 2000);
-
-            // Android返回键
-            document.addEventListener('backbutton', function(e) {
-                e.preventDefault();
-                if (currentPage === 'folder') closeFolder();
-                else if (currentPage === 'about') closeAbout();
-                else if (currentPage === 'main') showExitConfirm();
-            }, false);
-            window.addEventListener('popstate', function(e) {
-                if (currentPage === 'folder') { closeFolder();
-                    e.preventDefault();
-                    history.pushState({ page: 'main' }, '', ''); } else if (currentPage === 'about') { closeAbout();
-                    e.preventDefault();
-                    history.pushState({ page: 'main' }, '', ''); } else if (currentPage === 'main') { showExitConfirm();
-                    e.preventDefault(); }
+        }
+        function openFolder(folderId) {
+            const res = getFolderById(folderId); if (!res) return;
+            currentFolderId = folderId; currentPage = 'folder';
+            $folderPage.classList.add('show'); $folderDetailTitle.textContent = res.folder.emoji + ' ' + res.folder.name;
+            $folderSearchInput.value = ''; renderEntries();
+            $bottomNav.style.display = 'none'; $fabAdd.style.display = 'none';
+        }
+        function closeFolder() {
+            currentPage='main'; currentFolderId=null; $folderPage.classList.remove('show');
+            $bottomNav.style.display = ''; $fabAdd.style.display = '';
+            hidePopupMenu(); hideEntryDetailPopup(); renderFolderGrid(); updateBarChart();
+        }
+        function getCurrentFolderObj() { return currentFolderId ? getFolderById(currentFolderId) : null; }
+        function renderEntries(searchTerm='') {
+            const res = getCurrentFolderObj(); if (!res) return;
+            let entries = res.folder.entries;
+            if (searchTerm.trim()) entries = entries.filter(e => e.name.includes(searchTerm.trim()));
+            $entriesList.innerHTML = '';
+            if (entries.length===0) { $entriesList.innerHTML = '<div class="no-entries">暂无记录</div>'; }
+            entries.forEach(entry => {
+                const item = document.createElement('div'); item.className = 'entry-item'; item.setAttribute('data-entry-id', entry.id);
+                item.innerHTML = `<div class="entry-left"><span class="entry-name">${escapeHtml(entry.name)}</span><span class="entry-note">${escapeHtml(entry.note||'')}</span></div><div class="entry-right"><span class="entry-amount">${parseFloat(entry.amount).toFixed(2)}元</span><span class="entry-date">${entry.date}</span></div>`;
+                // 单击条目 -> 显示跨文件夹详情（修复冒泡隐藏问题）
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();  // 阻止冒泡，避免被全局 click 隐藏
+                    if (popupMenuVisible) { hidePopupMenu(); return; }
+                    showEntryDetailPopup(entry.name);
+                });
+                // 长按条目
+                let lpTimer = null, tsPos = { x:0, y:0 };
+                const startLP = (x,y) => { tsPos={x,y}; lpTimer=setTimeout(() => { showPopupMenu(tsPos.x, tsPos.y, { type:'entry', id:entry.id, folderId:currentFolderId }); lpTimer=null; }, 600); };
+                item.addEventListener('touchstart', e => startLP(e.touches[0].clientX, e.touches[0].clientY), { passive:true });
+                item.addEventListener('touchend', () => { if (lpTimer) clearTimeout(lpTimer); });
+                item.addEventListener('touchmove', () => { if (lpTimer) clearTimeout(lpTimer); });
+                item.addEventListener('mousedown', e => startLP(e.clientX, e.clientY));
+                item.addEventListener('mouseup', () => { if (lpTimer) clearTimeout(lpTimer); });
+                item.addEventListener('mouseleave', () => { if (lpTimer) clearTimeout(lpTimer); });
+                $entriesList.appendChild(item);
             });
-            if (window.history?.pushState) history.pushState({ page: 'main' }, '', '');
-        })();
+        }
+        function showEntryDetailPopup(personName) {
+            entryDetailVisible = true;
+            $detailPopupTitle.textContent = '👤 ' + personName + ' 的全部记录';
+            let incomeRecords = [], expenseRecords = [];
+            appData.incomeFolders.forEach(f => f.entries.forEach(e => { if(e.name===personName) incomeRecords.push({folderName:f.name, amount:e.amount, date:e.date}); }));
+            appData.expenseFolders.forEach(f => f.entries.forEach(e => { if(e.name===personName) expenseRecords.push({folderName:f.name, amount:e.amount, date:e.date}); }));
+            $detailLeftRecords.innerHTML = incomeRecords.length===0 ? '<div style="color:#bbb;font-size:0.7rem;text-align:center;">无记录</div>' : incomeRecords.map(r => `<div class="detail-record">📁${r.folderName} | 💰${parseFloat(r.amount).toFixed(2)}元 | 📅${r.date}</div>`).join('');
+            $detailRightRecords.innerHTML = expenseRecords.length===0 ? '<div style="color:#bbb;font-size:0.7rem;text-align:center;">无记录</div>' : expenseRecords.map(r => `<div class="detail-record">📁${r.folderName} | 💸${parseFloat(r.amount).toFixed(2)}元 | 📅${r.date}</div>`).join('');
+            $entryDetailPopup.classList.add('show');
+            $overlay.classList.add('show');
+        }
+        function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+
+        // 全局点击处理（修复单击条目后弹窗被隐藏的问题）
+        document.addEventListener('click', function(e) {
+            // 如果弹出菜单显示，且点击的不是菜单内部，隐藏菜单（但不影响其他）
+            if (popupMenuVisible && !$popupMenu.contains(e.target)) {
+                hidePopupMenu();
+            }
+            // 如果条目详情弹窗显示，且点击的不是弹窗内部，也不是条目本身（避免刚显示就被隐藏），则隐藏弹窗
+            if (entryDetailVisible && !$entryDetailPopup.contains(e.target) && !e.target.closest('.entry-item')) {
+                hideEntryDetailPopup();
+            }
+            // 点击遮罩层也可隐藏
+            if (e.target === $overlay) {
+                hidePopupMenu();
+                hideEntryDetailPopup();
+            }
+        });
+
+        // 手势返回逻辑
+        let touchStartX=0, touchStartY=0, gestureHandled=false;
+        document.addEventListener('touchstart', e => { if(e.touches.length===1){ touchStartX=e.touches[0].clientX; touchStartY=e.touches[0].clientY; gestureHandled=false; } }, {passive:true});
+        document.addEventListener('touchend', e => {
+            if(gestureHandled) return;
+            if(e.changedTouches.length===1){
+                const dx = e.changedTouches[0].clientX - touchStartX;
+                const dy = e.changedTouches[0].clientY - touchStartY;
+                const fromLeft = touchStartX<35, fromRight = touchStartX>window.innerWidth-35;
+                if(Math.abs(dx)>50 && Math.abs(dx)>Math.abs(dy)*1.5 && ((fromLeft&&dx>0)||(fromRight&&dx<0))){
+                    gestureHandled=true;
+                    if(currentPage==='folder') closeFolder();
+                    else if(currentPage==='about') closeAbout();
+                    else if(currentPage==='main') showExitConfirm();
+                }
+            }
+        }, {passive:true});
+        function showExitConfirm(){
+            const modal = document.createElement('div'); modal.className='modal-dialog show'; modal.style.zIndex='650';
+            modal.innerHTML = `<div style="text-align:center;padding:10px 0;font-size:1rem;color:#333;font-weight:600;">确定退出应用吗？</div><div class="btn-row"><button class="btn btn-cancel" id="exit-cancel">取消</button><button class="btn btn-danger" id="exit-confirm">退出</button></div>`;
+            document.body.appendChild(modal);
+            modal.querySelector('#exit-cancel').addEventListener('click', ()=>document.body.removeChild(modal));
+            modal.querySelector('#exit-confirm').addEventListener('click', ()=>{
+                document.body.removeChild(modal);
+                if(window.navigator?.app?.exitApp) window.navigator.app.exitApp();
+                else { window.close(); showToast('请通过系统方式关闭应用'); }
+            });
+            modal.addEventListener('click', function(e){ if(e.target===modal) document.body.removeChild(modal); });
+        }
+        // 其他功能（编辑、删除、表单等）保持原有完整逻辑，此处省略以节省篇幅，但完整代码中包含全部功能。
+        // 由于之前的代码已经非常完整，这里直接复用前面的所有函数（addNewFolder, editFolder, deleteFolder, editEntry, deleteEntry, 表单弹窗, 导入导出等）
+        // 请确保将原回答中所有函数完整复制于此，或直接使用本次提供的完整版本（已包含全部）。
+
+        // ================== 完整的编辑、删除、表单、导入导出逻辑 ==================
+        function handlePopupAction(action) {
+            if(!popupTarget) return;
+            if(action === 'edit') {
+                if(popupTarget.type === 'folder') editFolder(popupTarget.id);
+                else editEntry(popupTarget.folderId, popupTarget.id);
+            } else if(action === 'delete') {
+                if(popupTarget.type === 'folder') deleteFolder(popupTarget.id);
+                else deleteEntry(popupTarget.folderId, popupTarget.id);
+            }
+            hidePopupMenu();
+        }
+        function editFolder(folderId) {
+            const res = getFolderById(folderId); if(!res) return;
+            showFolderFormModal('修改文件夹', res.folder.name, res.folder.emoji, (newName, newEmoji) => {
+                res.folder.name = newName; res.folder.emoji = newEmoji; saveData();
+                renderFolderGrid(); if(currentPage==='folder' && currentFolderId===folderId) $folderDetailTitle.textContent = newEmoji + ' ' + newName;
+                showToast('✅ 文件夹已更新');
+            });
+        }
+        function deleteFolder(folderId) {
+            const res = getFolderById(folderId); if(!res) return;
+            showConfirmModal(`确定删除文件夹"${res.folder.name}"及其所有记录吗？`, () => {
+                if(res.type==='income') appData.incomeFolders = appData.incomeFolders.filter(f => f.id !== folderId);
+                else appData.expenseFolders = appData.expenseFolders.filter(f => f.id !== folderId);
+                saveData(); if(currentPage==='folder' && currentFolderId===folderId) closeFolder();
+                renderFolderGrid(); updateBarChart(); showToast('🗑️ 文件夹已删除');
+            });
+        }
+        function editEntry(folderId, entryId) {
+            const res = getFolderById(folderId); if(!res) return;
+            const entry = res.folder.entries.find(e => e.id === entryId); if(!entry) return;
+            showEntryFormModal('修改记录', entry.name, entry.amount, entry.date, entry.note, (name, amount, date, note) => {
+                entry.name = name; entry.amount = parseFloat(amount); entry.date = date; entry.note = note;
+                saveData(); renderEntries($folderSearchInput.value); renderFolderGrid(); updateBarChart(); showToast('✅ 记录已更新');
+            });
+        }
+        function deleteEntry(folderId, entryId) {
+            const res = getFolderById(folderId); if(!res) return;
+            showConfirmModal('确定删除该条记录吗？', () => {
+                res.folder.entries = res.folder.entries.filter(e => e.id !== entryId);
+                saveData(); renderEntries($folderSearchInput.value); renderFolderGrid(); updateBarChart(); showToast('🗑️ 记录已删除');
+            });
+        }
+        function showFolderFormModal(title, defName, defEmoji, cb) {
+            const modal = document.createElement('div'); modal.className='modal-dialog show'; modal.style.zIndex='650';
+            let selEmoji = defEmoji;
+            modal.innerHTML = `<div class="modal-title">${title}</div><div class="form-group"><label>文件夹名称</label><input type="text" id="folder-form-name" value="${escapeHtml(defName)}" placeholder="请输入名称"></div><div class="form-group"><label>选择图标</label><div class="emoji-picker" id="emoji-picker-folder">${EMOJI_OPTIONS.map(e => `<span class="emoji-option${e===selEmoji?' selected':''}" data-emoji="${e}">${e}</span>`).join('')}</div></div><div class="btn-row"><button class="btn btn-cancel" id="modal-cancel-folder">取消</button><button class="btn btn-primary" id="modal-confirm-folder">确认</button></div>`;
+            document.body.appendChild(modal);
+            modal.querySelector('#emoji-picker-folder').addEventListener('click', e => {
+                const opt = e.target.closest('.emoji-option'); if(!opt) return;
+                modal.querySelectorAll('.emoji-option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected'); selEmoji = opt.dataset.emoji;
+            });
+            modal.querySelector('#modal-cancel-folder').addEventListener('click', () => document.body.removeChild(modal));
+            modal.querySelector('#modal-confirm-folder').addEventListener('click', () => {
+                const name = modal.querySelector('#folder-form-name').value.trim();
+                if(!name) { showToast('⚠️ 请输入文件夹名称'); return; }
+                document.body.removeChild(modal); cb(name, selEmoji);
+            });
+            modal.addEventListener('click', function(e) { if(e.target === modal) document.body.removeChild(modal); });
+        }
+        function showEntryFormModal(title, defName, defAmount, defDate, defNote, cb) {
+            const modal = document.createElement('div'); modal.className='modal-dialog show'; modal.style.zIndex='650';
+            const today = new Date().toISOString().split('T')[0]; const useDate = defDate || today;
+            modal.innerHTML = `<div class="modal-title">${title}</div><div class="form-group"><label>姓名</label><input type="text" id="entry-form-name" value="${escapeHtml(defName||'')}" placeholder="请输入姓名"></div><div class="form-group"><label>金额（元）</label><input type="number" id="entry-form-amount" value="${defAmount||''}" placeholder="请输入金额" step="0.01" min="0"></div><div class="form-group"><label>日期</label><input type="date" id="entry-form-date" value="${useDate}"></div><div class="form-group"><label>备注</label><input type="text" id="entry-form-note" value="${escapeHtml(defNote||'')}" placeholder="可选备注"></div><div class="btn-row"><button class="btn btn-cancel" id="modal-cancel-entry">取消</button><button class="btn btn-primary" id="modal-confirm-entry">确认</button></div>`;
+            document.body.appendChild(modal);
+            modal.querySelector('#modal-cancel-entry').addEventListener('click', () => document.body.removeChild(modal));
+            modal.querySelector('#modal-confirm-entry').addEventListener('click', () => {
+                const name = modal.querySelector('#entry-form-name').value.trim();
+                const amount = modal.querySelector('#entry-form-amount').value;
+                const date = modal.querySelector('#entry-form-date').value;
+                const note = modal.querySelector('#entry-form-note').value.trim();
+                if(!name) { showToast('⚠️ 请输入姓名'); return; }
+                if(!amount || parseFloat(amount) < 0) { showToast('⚠️ 请输入有效金额'); return; }
+                if(!date) { showToast('⚠️ 请选择日期'); return; }
+                document.body.removeChild(modal); cb(name, amount, date, note);
+            });
+            modal.addEventListener('click', function(e) { if(e.target === modal) document.body.removeChild(modal); });
+        }
+        function showConfirmModal(msg, cb) {
+            const modal = document.createElement('div'); modal.className='modal-dialog show'; modal.style.zIndex='650';
+            modal.innerHTML = `<div style="text-align:center;padding:10px 0;font-size:0.95rem;color:#333;">${msg}</div><div class="btn-row"><button class="btn btn-cancel" id="modal-cancel-confirm">取消</button><button class="btn btn-danger" id="modal-confirm-confirm">确认删除</button></div>`;
+            document.body.appendChild(modal);
+            modal.querySelector('#modal-cancel-confirm').addEventListener('click', () => document.body.removeChild(modal));
+            modal.querySelector('#modal-confirm-confirm').addEventListener('click', () => { document.body.removeChild(modal); cb(); });
+            modal.addEventListener('click', function(e) { if(e.target === modal) document.body.removeChild(modal); });
+        }
+        function addNewFolder() {
+            showFolderFormModal('新增文件夹', '', '📁', (name, emoji) => {
+                getCurrentFolders().push({ id: generateId(), name, emoji, entries: [] });
+                saveData(); renderFolderGrid(); updateBarChart(); showToast('✅ 文件夹已创建');
+            });
+        }
+        function addNewEntry() {
+            if(!currentFolderId) return;
+            showEntryFormModal('记一笔', '', '', '', '', (name, amount, date, note) => {
+                const res = getCurrentFolderObj(); if(!res) return;
+                res.folder.entries.push({ id: generateId(), name, amount: parseFloat(amount), date, note });
+                saveData(); renderEntries($folderSearchInput.value); renderFolderGrid(); updateBarChart(); showToast('✅ 记录已添加');
+            });
+        }
+        function exportData() {
+            const rows = [];
+            appData.incomeFolders.forEach(f => f.entries.forEach(e => rows.push({ '类型': '收入', '文件夹名': f.name, '姓名': e.name, '金额': parseFloat(e.amount), '日期': e.date, '备注': e.note || '' })));
+            appData.expenseFolders.forEach(f => f.entries.forEach(e => rows.push({ '类型': '支出', '文件夹名': f.name, '姓名': e.name, '金额': parseFloat(e.amount), '日期': e.date, '备注': e.note || '' })));
+            if(rows.length===0) { showToast('⚠️ 没有数据可导出'); return; }
+            const ws = XLSX.utils.json_to_sheet(rows);
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, '人情往来数据');
+            const d = new Date();
+            const filename = `人情往来备份_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.xlsx`;
+            XLSX.writeFile(wb, filename);
+            showToast('✅ 数据已导出: ' + filename);
+        }
+        function importData(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const wb = XLSX.read(e.target.result, { type: 'array' });
+                    const ws = wb.Sheets[wb.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(ws);
+                    if(rows.length===0) { showToast('⚠️ 文件中没有数据'); return; }
+                    let imp=0, skip=0;
+                    rows.forEach(row => {
+                        const type = row['类型'] || '';
+                        const folderName = (row['文件夹名']||'').toString().trim();
+                        const name = (row['姓名']||'').toString().trim();
+                        const amount = parseFloat(row['金额'])||0;
+                        const date = (row['日期']||'').toString().trim();
+                        const note = (row['备注']||'').toString().trim();
+                        if(!folderName || !name || !date) return;
+                        let targets = [];
+                        if(type==='收入') targets = appData.incomeFolders.filter(f => f.name === folderName);
+                        else if(type==='支出') targets = appData.expenseFolders.filter(f => f.name === folderName);
+                        else targets = [...appData.incomeFolders.filter(f => f.name === folderName), ...appData.expenseFolders.filter(f => f.name === folderName)];
+                        targets.forEach(folder => {
+                            if(folder.entries.some(e => e.name === name)) skip++;
+                            else { folder.entries.push({ id: generateId(), name, amount, date, note }); imp++; }
+                        });
+                    });
+                    saveData(); renderFolderGrid(); updateBarChart();
+                    if(currentPage==='folder') renderEntries($folderSearchInput.value);
+                    showToast(`✅ 导入${imp}条，跳过${skip}条重复`);
+                } catch(err) { showToast('❌ 文件解析失败，请检查是否为xlsx格式'); console.error(err); }
+            };
+            reader.onerror = () => showToast('❌ 文件读取失败');
+            reader.readAsArrayBuffer(file);
+        }
+        function triggerImport() {
+            showToast('请选择备份文件（.xlsx）');
+            $importFileInput.click();
+        }
+        function openAbout() { currentPage='about'; $aboutPage.classList.add('show'); $bottomNav.style.display='none'; $fabAdd.style.display='none'; hidePopupMenu(); hideEntryDetailPopup(); }
+        function closeAbout() { currentPage='main'; $aboutPage.classList.remove('show'); $bottomNav.style.display=''; $fabAdd.style.display=''; }
+        function switchTab(tab) {
+            if(currentTab === tab) return;
+            currentTab = tab; $navTitle.textContent = tab==='income'?'收入':'支出';
+            document.querySelectorAll('#bottom-nav .tab-btn').forEach(b => b.classList.remove('active'));
+            const active = document.querySelector(`#bottom-nav .tab-btn[data-tab="${tab}"]`);
+            if(active) active.classList.add('active');
+            hidePopupMenu(); hideEntryDetailPopup(); renderFolderGrid(); updateBarChart();
+        }
+
+        // 事件绑定
+        document.querySelectorAll('#bottom-nav .tab-btn').forEach(b => b.addEventListener('click', function() { switchTab(this.dataset.tab); }));
+        $fabAdd.addEventListener('click', addNewFolder);
+        $popupMenu.querySelector('[data-action="edit"]').addEventListener('click', () => handlePopupAction('edit'));
+        $popupMenu.querySelector('[data-action="delete"]').addEventListener('click', () => handlePopupAction('delete'));
+        document.getElementById('folder-back-btn').addEventListener('click', closeFolder);
+        document.getElementById('about-back-btn').addEventListener('click', closeAbout);
+        $folderSearchInput.addEventListener('input', function() { renderEntries(this.value); });
+        document.getElementById('btn-add-entry').addEventListener('click', addNewEntry);
+        document.getElementById('btn-backup').addEventListener('click', function() {
+            hidePopupMenu(); hideEntryDetailPopup();
+            const modal = document.createElement('div'); modal.className='modal-dialog show'; modal.style.zIndex='650';
+            modal.innerHTML = `<div class="modal-title">数据备份与恢复</div><div style="display:flex;flex-direction:column;gap:10px;"><button class="btn btn-primary" id="do-export" style="width:100%;">📤 导出数据 (xlsx)</button><button class="btn btn-primary" id="do-import" style="width:100%;background:#5b8c5a;">📥 导入数据 (xlsx)</button><button class="btn btn-cancel" id="do-cancel-backup" style="width:100%;">取消</button></div>`;
+            document.body.appendChild(modal);
+            modal.querySelector('#do-export').addEventListener('click', () => { document.body.removeChild(modal); exportData(); });
+            modal.querySelector('#do-import').addEventListener('click', () => { document.body.removeChild(modal); triggerImport(); });
+            modal.querySelector('#do-cancel-backup').addEventListener('click', () => document.body.removeChild(modal));
+            modal.addEventListener('click', function(e) { if(e.target===modal) document.body.removeChild(modal); });
+        });
+        document.getElementById('btn-about').addEventListener('click', openAbout);
+        $importFileInput.addEventListener('change', function() {
+            if(this.files && this.files[0]) {
+                const file = this.files[0];
+                // 简单校验文件名后缀
+                if(!file.name.match(/\.(xlsx|xls)$/i)) {
+                    showToast('⚠️ 请选择 .xlsx 或 .xls 文件');
+                    this.value = '';
+                    return;
+                }
+                importData(file);
+                this.value = '';
+            }
+        });
+
+        // 初始化
+        loadData(); renderFolderGrid(); updateBarChart(); $navTitle.textContent='收入';
+        setTimeout(() => { $splash.classList.add('fade-out'); setTimeout(() => { $splash.style.display='none'; }, 600); }, 2000);
+
+        // Android返回键
+        document.addEventListener('backbutton', e => {
+            e.preventDefault();
+            if(currentPage==='folder') closeFolder();
+            else if(currentPage==='about') closeAbout();
+            else if(currentPage==='main') showExitConfirm();
+        }, false);
+        window.addEventListener('popstate', e => {
+            if(currentPage==='folder'){ closeFolder(); e.preventDefault(); history.pushState({page:'main'},'',''); }
+            else if(currentPage==='about'){ closeAbout(); e.preventDefault(); history.pushState({page:'main'},'',''); }
+            else if(currentPage==='main'){ showExitConfirm(); e.preventDefault(); }
+        });
+        if(window.history?.pushState) history.pushState({page:'main'},'','');
+    })();
     </script>
 </body>
 </html>
